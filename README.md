@@ -1,4 +1,4 @@
-# 🚀 FEDU ANTIGRAVITY SKILLS
+# 🚀 AI SKILL
 
 > **Kho Kỹ Năng Thực Chiến Độc Quyền (Custom Skills Ecosystem) Dành Cho Antigravity AI Agent**  
 > Được phát triển và tinh chỉnh bởi **VietMac / FEDU**.
@@ -13,7 +13,7 @@ Học viên có thể chọn **1 trong 2 cách siêu tốc** dưới đây để
 Mở Antigravity lên và dán vào khung chat câu lệnh ngắn sau:
 
 ```text
-Cài skills: https://github.com/vietndj/fedu-antigravity-skills
+Cài skills: https://github.com/vietndj/AI-Skill
 ```
 *(AI Antigravity sẽ tự động clone và nạp toàn bộ kỹ năng vào hệ thống của bạn ngay lập tức!)*
 
@@ -26,12 +26,12 @@ Cài skills: https://github.com/vietndj/fedu-antigravity-skills
 
 #### 👉 Dành cho macOS / Linux:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/vietndj/fedu-antigravity-skills/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/vietndj/AI-Skill/main/install.sh | bash
 ```
 
 #### 👉 Dành cho Windows (PowerShell):
 ```powershell
-irm https://raw.githubusercontent.com/vietndj/fedu-antigravity-skills/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/vietndj/AI-Skill/main/install.ps1 | iex
 ```
 
 3. Khởi động lại Antigravity để kích hoạt toàn bộ kỹ năng.
@@ -60,7 +60,7 @@ irm https://raw.githubusercontent.com/vietndj/fedu-antigravity-skills/main/insta
 ## 🔄 CẬP NHẬT PHIÊN BẢN MỚI
 
 Khi kho kỹ năng có tính năng mới hoặc nâng cấp prompt, bạn chỉ cần:
-- Gõ vào khung chat Antigravity: `Sync skills https://github.com/vietndj/fedu-antigravity-skills`
+- Gõ vào khung chat Antigravity: `Sync skills https://github.com/vietndj/AI-Skill`
 - Hoặc chạy lại dòng lệnh cài đặt ban đầu trong Terminal.
 
 ---

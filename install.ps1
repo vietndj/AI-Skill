@@ -1,14 +1,14 @@
 # ==============================================================================
-# FEDU ANTIGRAVITY SKILLS - ONE-CLICK INSTALLER (Windows PowerShell)
+# AI SKILL - ONE-CLICK INSTALLER (Windows PowerShell)
 # ==============================================================================
 
-$RepoUrl = "https://github.com/vietndj/fedu-antigravity-skills.git"
+$RepoUrl = "https://github.com/vietndj/AI-Skill.git"
 $TargetDir = "$env:USERPROFILE\.gemini\config\skills"
-$TempDir = "$env:USERPROFILE\.gemini\.fedu-skills-temp"
+$TempDir = "$env:USERPROFILE\.gemini\.ai-skill-temp"
 
 Write-Host ""
 Write-Host "======================================================" -ForegroundColor Cyan
-Write-Host " 🚀 CAI DAT BO KY NANG ANTIGRAVITY AI - FEDU ECOSYSTEM" -ForegroundColor Green
+Write-Host " 🚀 CAI DAT BO KY NANG ANTIGRAVITY AI - AI SKILL" -ForegroundColor Green
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host ""
 

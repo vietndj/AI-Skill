@@ -1,13 +1,13 @@
 #!/bin/bash
 # ==============================================================================
-# FEDU ANTIGRAVITY SKILLS - ONE-CLICK INSTALLER (macOS / Linux)
+# AI SKILL - ONE-CLICK INSTALLER (macOS / Linux)
 # ==============================================================================
 
 set -e
 
-REPO_URL="https://github.com/vietndj/fedu-antigravity-skills.git"
+REPO_URL="https://github.com/vietndj/AI-Skill.git"
 TARGET_SKILLS_DIR="$HOME/.gemini/config/skills"
-TEMP_CLONE_DIR="$HOME/.gemini/.fedu-skills-temp"
+TEMP_CLONE_DIR="$HOME/.gemini/.ai-skill-temp"
 
 # Colors
 GREEN='\033[0;32m'
@@ -18,7 +18,7 @@ NC='\033[0m'
 
 echo ""
 echo -e "${CYAN}======================================================${NC}"
-echo -e "${GREEN} 🚀 CÀI ĐẶT BỘ KỸ NĂNG ANTIGRAVITY AI - FEDU ECOSYSTEM${NC}"
+echo -e "${GREEN} 🚀 CÀI ĐẶT BỘ KỸ NĂNG ANTIGRAVITY AI - AI SKILL${NC}"
 echo -e "${CYAN}======================================================${NC}"
 echo ""
 
