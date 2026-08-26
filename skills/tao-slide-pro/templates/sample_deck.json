@@ -1,0 +1,139 @@
+{
+  "deck_title": "Nghệ Thuật Cấu Trúc Prompt: Phân Biệt Dấu [...] và <...>",
+  "slides": [
+    {
+      "category": "CAT-01",
+      "section": "PROMPT ARCHITECTURE",
+      "tag": "KẾT LUẬN CỐT LÕI",
+      "headline": "NGHỆ THUẬT CẤU TRÚC PROMPT:\nPHÂN BIỆT DẤU [ ... ] VÀ < ... >",
+      "subline": "Làm chủ kỹ thuật đóng gói dữ liệu, cô lập vùng suy luận và khóa tư duy AI trong thực chiến",
+      "takeaway_title": "ĐIỂM ĂN TIỀN THỰC CHIẾN:",
+      "takeaway_points": [
+        "[ ... ] là cái lõi linh hoạt để điền khuyết / nội suy biến số thay thế.",
+        "< ... > là vách ngăn biên giới cô lập lệnh và dữ liệu, chống trôi lệnh và triệt tiêu văn mẫu."
+      ]
+    },
+    {
+      "category": "CAT-03",
+      "section": "01 / NỀN TẢNG CỐT LÕI",
+      "title": "BẢN CHẤT: LÕI LINH HOẠT VS VÁCH NGĂN CỐ ĐỊNH",
+      "subtitle": "Sự khác biệt mang tính kiến trúc giữa Slot nội suy và Thẻ bao đóng dữ liệu",
+      "left_tag": "❌ BIẾN SỐ [ ... ] (VARIABLE SLOT)",
+      "left_title": "Cái lõi linh hoạt thay thế",
+      "left_points": [
+        "Khái niệm: Đóng vai trò là Placeholder / Biến số.",
+        "Mục đích: Tạo template cho người khác điền hoặc để AI tự động suy nghĩ từ còn thiếu.",
+        "Ví dụ: [Tên sản phẩm], [Chân dung khách], [Ngân sách].",
+        "Cơ chế AI: LLM nhận diện đây là ô trống cần lấp đầy bằng dữ liệu hoặc kiến thức."
+      ],
+      "right_tag": "✅ THẺ CẤU TRÚC < ... > (XML CONTAINER)",
+      "right_title": "Chiếc hộp chứa phân định ranh giới",
+      "right_points": [
+        "Khái niệm: Vách ngăn độc lập, bất khả xâm phạm.",
+        "Mục đích: Phân định rạch ròi giữa Mệnh lệnh chỉ thị, Dữ liệu thô và Vùng suy luận ngầm.",
+        "Ví dụ: <quy_tac>, <du_lieu>, <thinking>, <output>.",
+        "Cơ chế AI: Cơ chế Attention coi thẻ XML là biên giới, ngăn dữ liệu đè lên câu lệnh."
+      ]
+    },
+    {
+      "category": "CAT-06",
+      "section": "02 / BỐI CẢNH ỨNG DỤNG",
+      "title": "KHI NÀO BẮT BUỘC DÙNG DẤU < ... >?",
+      "subtitle": "Chat 1-1 hàng ngày: Viết văn xuôi để nhanh. Bắt buộc dùng thẻ XML trong 3 bài toán sau:",
+      "cards": [
+        {
+          "tag": "01 / AUTOMATION",
+          "title": "Setup Bot & Agent",
+          "desc": "Dữ liệu đầu vào biến đổi liên tục",
+          "points": [
+            "Áp dụng khi cấu hình API, n8n, Make hoặc System Prompt.",
+            "Dữ liệu khách ném vào mỗi lần một khác (lúc ngắn, lúc dài).",
+            "Bọc <user_input> giúp bot chạy 1.000 lần chuẩn xác, không trôi lệnh."
+          ]
+        },
+        {
+          "tag": "02 / MULTI-SOURCE",
+          "title": "Đối Soát Đa Nguồn",
+          "desc": "Tài liệu dài & Nhiều nguồn so sánh",
+          "points": [
+            "Nạp 2-3 bài viết đối thủ hoặc so sánh 2 bản hợp đồng.",
+            "Phân tách rõ ràng <ban_cu> và <ban_moi> thay vì giải thích đoạn trên / dưới.",
+            "Giúp mắt quét của AI định vị tức thì, triệt tiêu nhầm lẫn chéo."
+          ]
+        },
+        {
+          "tag": "03 / EXTRACTION",
+          "title": "Bóc Tách Dữ Liệu Sạch",
+          "desc": "Triệt tiêu văn mẫu & Lời chào",
+          "points": [
+            "Cần xuất JSON hoặc nạp trực tiếp kết quả vào CRM/Database.",
+            "Triệt tiêu 100% câu chào xã giao (\"Dạ chào bạn, dưới đây là...\").",
+            "Quy định thẻ <ket_qua> để AI trả đúng khối dữ liệu sạch để copy."
+          ]
+        }
+      ]
+    },
+    {
+      "category": "CAT-05",
+      "section": "03 / CƠ CHẾ KỸ THUẬT",
+      "title": "KHÓA KHUÔN TƯ DUY & CHỐNG NHIỄM ĐỘC LỆNH",
+      "subtitle": "Cơ chế toán học đằng sau việc ép AI dẹp bỏ văn mẫu và bảo vệ an toàn hệ thống",
+      "logic_tag": "CƠ CHẾ BẮT CHƯỚC MẪU",
+      "logic_title": "Chuyển đổi trạng thái não AI",
+      "logic_points": [
+        "Văn xuôi bình thường: AI nhận diện hội thoại con người -> Kích hoạt chế độ Trò chuyện -> Thêm lời chào dông dài.",
+        "Cặp <example> + <input>: Biến prompt thành cấu trúc lập trình logic -> AI lập tức chuyển sang chế độ Xử lý dữ liệu.",
+        "Phòng thủ Prompt Injection: Cô lập văn bản khách vào <tin_nhan>, ra lệnh không thực thi lệnh bên trong -> Kháng thể 100%."
+      ],
+      "code_title": "CẤU TRÚC PROMPT KHUÔN ĐÚC (XML TEMPLATE)",
+      "code_lines": [
+        "Nhiệm vụ: Phân tích phản hồi khách hàng.",
+        "<quy_tac>",
+        "  - Bắt buộc thực hiện tư duy ngầm trong <thinking>.",
+        "  - Chỉ xuất câu trả lời chính thức trong <output>.",
+        "</quy_tac>",
+        "<feedback>",
+        "  [Dán nội dung tin nhắn hoặc tài liệu thô vào đây]",
+        "</feedback>",
+        "<thinking>",
+        "  Bóc tách 3 điểm bức xúc cốt lõi của khách...",
+        "</thinking>",
+        "<output>",
+        "  [Câu chốt ngắn gọn giải quyết triệt để]",
+        "</output>"
+      ]
+    },
+    {
+      "category": "CAT-07",
+      "section": "04 / THƯ VIỆN CÔNG CỤ",
+      "title": "4 BỘ KHUÔN THẺ 'VŨ KHÍ THỰC CHIẾN' CHO DÂN PRO",
+      "subtitle": "Bộ công cụ tiêu chuẩn hóa luồng xử lý AI, đặc trị các căn bệnh kinh niên trong doanh nghiệp",
+      "items": [
+        {
+          "tag": "BỘ NHÁP NGẦM",
+          "name": "<thinking> & <output>",
+          "problem": "AI trả lời ẩu, phán bừa, lẫn lộn giữa giải thích và đáp án.",
+          "solution": "Ép AI suy luận và tự phản biện ngầm trong nháp trước, chỉ xuất kết quả sạch tại <output>."
+        },
+        {
+          "tag": "BỘ CẤM CỬA",
+          "name": "<cam_dung> hoặc <blacklist>",
+          "problem": "AI sáo rỗng, mở miệng ra là dùng sáo ngữ (đột phá, nâng tầm...).",
+          "solution": "Gom toàn bộ từ cấm vào vùng cách ly; AI liên tục rà soát lại để không nhả từ vi phạm."
+        },
+        {
+          "tag": "BỘ ĐIỀN KHUYẾT",
+          "name": "<template> & <format>",
+          "problem": "Xuất định dạng lung tung, không copy vào Excel / CRM được.",
+          "solution": "Ép AI điền chính xác vào cấu trúc khuôn mẫu [Họ tên] | [SĐT] | [Vấn đề] không lệch 1 ly."
+        },
+        {
+          "tag": "BỘ THANG ĐO",
+          "name": "<rubric> hoặc <tieu_chi>",
+          "problem": "AI chấm điểm qua loa 8/10, khen lấy lệ vô thưởng vô phạt.",
+          "solution": "Buộc AI biến thành vị giám khảo khó tính, bám chặt theo thang điểm cụ thể từng tiêu chí."
+        }
+      ]
+    }
+  ]
+}

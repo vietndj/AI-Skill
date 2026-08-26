@@ -1,0 +1,150 @@
+{
+  "videoSrc": "cam1_clean_dialogue.mp4",
+  "brand": {
+    "left": "Halona Viral COURSE",
+    "center": "↗ 0934.68.86.32 (imess)",
+    "right": "2026"
+  },
+  "scenes": [
+    {
+      "scene": 1,
+      "type": "lower",
+      "start": 0.2,
+      "end": 3.75,
+      "typography": {
+        "style_id": 6,
+        "line1": "ĐẾN VỚI",
+        "line2": "Khóa học hôm nay...",
+        "size1": 56,
+        "size2": 42,
+        "posY": 320,
+        "motion": 1,
+        "shadowOp": 60,
+        "glowInt": 40
+      },
+      "visual": {
+        "type": "none"
+      }
+    },
+    {
+      "scene": 2,
+      "type": "lower",
+      "start": 3.75,
+      "end": 6.2,
+      "typography": {
+        "style_id": 3,
+        "line1": "KỲ VỌNG",
+        "line2": "vào việc là...",
+        "size1": 54,
+        "size2": 42,
+        "posY": 320,
+        "motion": 2,
+        "shadowOp": 60,
+        "glowInt": 30
+      },
+      "visual": {
+        "type": "none"
+      }
+    },
+    {
+      "scene": 3,
+      "type": "lower",
+      "start": 6.2,
+      "end": 8.79,
+      "typography": {
+        "style_id": 1,
+        "line1": "VIDEO SẼ",
+        "line2": "nhiều màu sắc hơn",
+        "size1": 54,
+        "size2": 42,
+        "posY": 320,
+        "motion": 3,
+        "shadowOp": 60,
+        "glowInt": 40
+      },
+      "visual": {
+        "type": "none"
+      }
+    },
+    {
+      "scene": 4,
+      "type": "lower",
+      "start": 8.79,
+      "end": 11.62,
+      "typography": {
+        "style_id": 5,
+        "line1": "NHƯNG KHÔNG!",
+        "line2": "thực tế hoàn toàn khác",
+        "size1": 56,
+        "size2": 40,
+        "posY": 320,
+        "motion": 4,
+        "shadowOp": 70,
+        "glowInt": 50
+      },
+      "visual": {
+        "type": "none"
+      }
+    },
+    {
+      "scene": 5,
+      "type": "lower",
+      "start": 11.62,
+      "end": 14.74,
+      "typography": {
+        "style_id": 8,
+        "line1": "ĐIỀU GIÁ TRỊ NHẤT",
+        "line2": "mà tôi học được là lược bớt",
+        "size1": 52,
+        "size2": 40,
+        "posY": 320,
+        "motion": 1,
+        "shadowOp": 60,
+        "glowInt": 40
+      },
+      "visual": {
+        "type": "none"
+      }
+    },
+    {
+      "scene": 6,
+      "type": "lower",
+      "start": 14.74,
+      "end": 18.03,
+      "typography": {
+        "style_id": 11,
+        "line1": "VIDEO SẠCH NHẤT",
+        "line2": "tinh gọn & tự nhiên",
+        "size1": 54,
+        "size2": 42,
+        "posY": 320,
+        "motion": 1,
+        "shadowOp": 60,
+        "glowInt": 40
+      },
+      "visual": {
+        "type": "none"
+      }
+    },
+    {
+      "scene": 7,
+      "type": "lower",
+      "start": 18.03,
+      "end": 22.03,
+      "typography": {
+        "style_id": 4,
+        "line1": "ĐIỆN ẢNH NHẤT",
+        "line2": "chuyên nghiệp & đẳng cấp ✨",
+        "size1": 56,
+        "size2": 42,
+        "posY": 320,
+        "motion": 4,
+        "shadowOp": 70,
+        "glowInt": 50
+      },
+      "visual": {
+        "type": "none"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Edit Studio — {{VIDEO_NAME}}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    /* ============================================================ */
+    /* FONT DECLARATIONS (injected by generate_studio.py)           */
+    /* ============================================================ */
+    {{FONT_FACE_CSS}}
+
+    /* ============================================================ */
+    /* RESET & BASE                                                  */
+    /* ============================================================ */
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #030406;
+      color: #fff;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 12px;
+    }
+
+    /* ============================================================ */
+    /* HEADER BAR                                                    */
+    /* ============================================================ */
+    .studio-header {
+      max-width: 1320px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(12, 14, 19, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+    }
+    .studio-header h1 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #FFECA8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .studio-header h1 span.version {
+      font-size: 10px;
+      background: rgba(255, 236, 168, 0.2);
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: #FFECA8;
+      font-weight: 700;
+    }
+    .video-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .video-meta span { display: flex; align-items: center; gap: 4px; }
+    .video-meta .val { color: #fff; font-weight: 700; }
+
+    /* ============================================================ */
+    /* SCENE TABS                                                    */
+    /* ============================================================ */
+    .scene-tabs {
+      max-width: 1320px;
+      margin: 0 auto 12px;
+      display: flex;
+      gap: 8px;
+    }
+    .scene-tab {
+      flex: 1;
+      background: rgba(12, 14, 19, 0.95);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .scene-tab:hover { border-color: rgba(255, 236, 168, 0.4); }
+    .scene-tab.active {
+      border-color: #FFECA8;
+      background: rgba(255, 236, 168, 0.12);
+      box-shadow: 0 0 16px rgba(255, 236, 168, 0.25);
+    }
+    .scene-tab .tab-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+    }
+    .scene-tab.active .tab-label { color: #FFECA8; }
+    .scene-tab .tab-type {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .scene-tab.active .tab-type { color: #fff; }
+    .scene-tab .tab-time {
+      font-size: 9px;
+      color: #475569;
+      font-family: 'SF Mono', monospace;
+      font-weight: 600;
+    }
+    .scene-tab.active .tab-time { color: #FFECA8; }
+    .scene-tab .tab-status {
+      font-size: 9px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .scene-tab.configured .tab-status { color: #10b981; }
+
+    /* ============================================================ */
+    /* MAIN LAYOUT: PREVIEW + CONTROLS                               */
+    /* ============================================================ */
+    .main-layout {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    /* PHONE PREVIEW */
+    .preview-col {
+      position: sticky;
+      top: 12px;
+      flex-shrink: 0;
+    }
+    .phone-screen {
+      position: relative;
+      width: 350px;
+      height: 622px;
+      background: #000;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+    .bg-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      transition: opacity 0.3s ease;
+    }
+    .broll-overlay {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 2;
+      display: none;
+    }
+    .live-tag {
+      position: absolute;
+      top: 40px;
+      right: 14px;
+      background: #FF1744;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 3px;
+      z-index: 25;
+      display: none;
+      letter-spacing: 0.5px;
+    }
+
+    /* TOP BRAND META */
+    .top-meta-bar {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      font-family: 'SF Mono', Menlo, monospace;
+      font-size: 9px;
+      letter-spacing: 0.4px;
+      color: rgba(255, 255, 255, 0.7);
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+      pointer-events: none;
+    }
+    .top-meta-bar .meta-left { font-weight: 700; text-transform: uppercase; }
+    .top-meta-bar .meta-center { color: rgba(255, 255, 255, 0.55); font-size: 8px; }
+    .top-meta-bar .meta-right { font-weight: 800; }
+
+    /* TYPOGRAPHY BLOCK */
+    .typo-container {
+      position: absolute;
+      bottom: 90px;
+      left: 10px;
+      right: 10px;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      pointer-events: none;
+      transition: bottom 0.15s ease;
+      will-change: transform, filter;
+    }
+    .line-top, .line-mid, .line-bot {
+      position: relative;
+      white-space: nowrap;
+      transition: font-size 0.15s ease, margin-top 0.15s ease;
+      will-change: transform, opacity, filter;
+    }
+    .line-top { z-index: 2; }
+    .line-mid { z-index: 2; }
+    .line-bot { z-index: 3; }
+
+    /* Special elements */
+    .strike-laser {
+      position: absolute;
+      top: 52%;
+      left: -6%;
+      width: 112%;
+      height: 4px;
+      background: #FF2E2E;
+      box-shadow: 0 0 12px #FF2E2E, 0 0 22px #FF0000;
+      transform: scaleX(0);
+      transform-origin: left center;
+      border-radius: 2px;
+      z-index: 5;
+      display: none;
+    }
+    .circle-ring {
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 75px;
+      border: 2.5px solid rgba(255, 255, 255, 0.85);
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+      pointer-events: none;
+      z-index: 1;
+      display: none;
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 110, 255, 0.3);
+      border: 2px solid #00E5FF;
+      box-shadow: 0 0 22px rgba(0, 229, 255, 0.6), inset 0 0 12px rgba(0, 229, 255, 0.4);
+      padding: 9px 22px;
+      border-radius: 30px;
+      font-family: 'GT-America', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff !important;
+      letter-spacing: 0.8px;
+    }
+    .sparkle-star {
+      position: absolute;
+      color: #FFECA8;
+      font-size: 22px;
+      filter: drop-shadow(0 0 10px #FFF);
+      pointer-events: none;
+      display: none;
+    }
+    .cta-arrow {
+      margin-top: 16px;
+      font-size: 36px;
+      line-height: 1;
+      color: #FFDE00;
+      filter: drop-shadow(0 0 14px rgba(255, 222, 0, 0.95));
+      animation: bounceArrow 0.75s infinite alternate ease-in-out;
+      display: none;
+      z-index: 10;
+      pointer-events: none;
+    }
+    @keyframes bounceArrow {
+      0% { transform: translateY(0) scale(0.92); }
+      100% { transform: translateY(10px) scale(1.15); }
+    }
+
+    /* IMAGE OVERLAY STAGE */
+    .image-stage {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .image-overlay {
+      position: absolute;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+    .image-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* LOWER SUBTITLE */
+    .lower-sub {
+      position: absolute;
+      bottom: 20px;
+      left: 14px;
+      right: 14px;
+      z-index: 18;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      border-radius: 10px;
+      padding: 8px 12px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      pointer-events: none;
+    }
+
+    /* REPLAY BUTTON */
+    .btn-replay {
+      margin-top: 8px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-replay:hover { background: rgba(255, 236, 168, 0.15); color: #FFECA8; border-color: #FFECA8; }
+
+    /* ============================================================ */
+    /* CONTROLS PANEL                                                */
+    /* ============================================================ */
+    .controls-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .panel {
+      background: rgba(12, 14, 19, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #FFECA8;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title .subtitle {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: none;
+    }
+
+    /* Text inputs */
+    .text-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .input-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: #FFECA8;
+      width: 65px;
+      flex-shrink: 0;
+    }
+    .text-field {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .text-field:focus {
+      border-color: #FFECA8;
+      box-shadow: 0 0 12px rgba(255, 236, 168, 0.3);
+    }
+
+    /* Category tabs */
+    .cat-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .btn-cat {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 5px 3px;
+      border-radius: 7px;
+      font-size: 9px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .btn-cat.active { background: #FFECA8; color: #000; border-color: #FFECA8; }
+
+    /* Styles grid */
+    .styles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      max-height: 210px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 8px;
+    }
+    .styles-grid::-webkit-scrollbar { width: 4px; }
+    .styles-grid::-webkit-scrollbar-track { background: transparent; }
+    .styles-grid::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 2px; }
+
+    .btn-style {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      padding: 5px 7px;
+      border-radius: 7px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .btn-style:hover, .btn-style.active {
+      background: rgba(255, 236, 168, 0.15);
+      border-color: #FFECA8;
+      color: #FFECA8;
+    }
+    .style-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 3px;
+    }
+
+    /* Sliders */
+    .slider-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .slider-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+    .slider {
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #FFECA8;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(255, 236, 168, 0.5);
+    }
+
+    /* Visual panel */
+    .visual-toggle {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .btn-toggle {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 7px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .btn-toggle.active {
+      background: rgba(255, 236, 168, 0.15);
+      border-color: #FFECA8;
+      color: #FFECA8;
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .btn-preset {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      padding: 8px 6px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .btn-preset:hover, .btn-preset.active {
+      background: rgba(255, 236, 168, 0.15);
+      border-color: #FFECA8;
+      color: #FFECA8;
+    }
+    .btn-preset .preset-icon { font-size: 18px; }
+    .btn-preset .preset-label { font-size: 8px; color: #64748b; font-weight: 600; }
+    .btn-preset.active .preset-label { color: #FFECA8; }
+
+    /* Image size/position controls */
+    .img-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pos-btns {
+      display: flex;
+      gap: 4px;
+    }
+    .btn-pos {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 5px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .btn-pos.active, .btn-pos:hover {
+      background: rgba(255, 236, 168, 0.15);
+      border-color: #FFECA8;
+      color: #FFECA8;
+    }
+    .disabled-notice {
+      font-size: 10px;
+      color: #64748b;
+      font-style: italic;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 8px;
+      text-align: center;
+      display: none;
+    }
+
+    /* B-Roll controls */
+    .broll-controls {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .broll-time-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .time-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .time-input-group label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #64748b;
+    }
+    .time-input {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'SF Mono', monospace;
+      outline: none;
+      width: 100%;
+    }
+    .time-input:focus { border-color: #FFECA8; }
+    .broll-duration {
+      font-size: 10px;
+      color: #10b981;
+      font-weight: 700;
+      text-align: center;
+      padding: 4px;
+    }
+    .broll-duration.error { color: #ef4444; }
+    .broll-file-input {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .broll-file-input input[type="text"] {
+      flex: 1;
+    }
+    .btn-browse {
+      background: rgba(255, 236, 168, 0.15);
+      border: 1px solid rgba(255, 236, 168, 0.4);
+      color: #FFECA8;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Motion presets */
+    .motion-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+    .btn-motion {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 5px 6px;
+      border-radius: 7px;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .btn-motion.active {
+      background: rgba(255, 236, 168, 0.2);
+      border-color: #FFECA8;
+      color: #FFECA8;
+    }
+
+    /* Advanced drawer */
+    .drawer {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .drawer summary {
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748b;
+      cursor: pointer;
+      outline: none;
+      list-style: none;
+    }
+    .drawer summary::-webkit-details-marker { display: none; }
+    .drawer summary:hover { color: #FFECA8; }
+    .drawer-content {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Brand editor */
+    .brand-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+    .brand-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .brand-group label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #64748b;
+    }
+    .brand-input {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      outline: none;
+    }
+    .brand-input:focus { border-color: #FFECA8; }
+
+    /* ============================================================ */
+    /* BOTTOM DOCK                                                   */
+    /* ============================================================ */
+    .bottom-dock {
+      max-width: 1320px;
+      margin: 12px auto 0;
+      background: rgba(12, 14, 19, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 12px 16px;
+    }
+    .dock-summary {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .dock-scene {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+    }
+    .dock-scene.done { border-color: rgba(16, 185, 129, 0.4); color: #10b981; }
+    .dock-scene .scene-label { font-weight: 800; text-transform: uppercase; font-size: 9px; }
+
+    .btn-export {
+      width: 100%;
+      background: linear-gradient(135deg, #FFECA8 0%, #FFB800 50%, #FF7A00 100%);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 6px 20px rgba(255, 184, 0, 0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-export:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 8px 28px rgba(255, 184, 0, 0.65);
+    }
+    .export-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .export-badge {
+      background: #000;
+      color: #FFECA8;
+      padding: 4px 14px;
+      border-radius: 8px;
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .toast {
+      display: none;
+      background: #10B981;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 800px) {
+      .main-layout { flex-direction: column; align-items: center; }
+      .preview-col { position: static; }
+      .phone-screen { width: 320px; height: 568px; }
+      .scene-tabs { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="studio-header">
+    <h1>⚡ Auto Edit Studio <span class="version">v4.0</span></h1>
+    <div class="video-meta">
+      <span>🎬 <span class="val" id="meta-video-name">{{VIDEO_NAME}}</span></span>
+      <span>⏱ <span class="val" id="meta-duration">{{VIDEO_DURATION}}s</span></span>
+      <span>📊 <span class="val" id="meta-scene-count">{{SCENE_COUNT}} cảnh</span></span>
+    </div>
+  </header>
+
+  <!-- SCENE TABS -->
+  <nav class="scene-tabs" id="scene-tabs-nav"></nav>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+
+    <!-- PHONE PREVIEW -->
+    <div class="preview-col">
+      <div class="phone-screen" id="phone-preview">
+        <img class="bg-frame" id="bg-frame-img" src="" alt="Video Frame">
+        <video class="broll-overlay" id="broll-video" muted loop></video>
+        <div class="live-tag" id="live-tag">● B-ROLL</div>
+
+        <div class="top-meta-bar">
+          <span class="meta-left" id="brand-display-left">{{BRAND_LEFT}}</span>
+          <span class="meta-center" id="brand-display-center">{{BRAND_CENTER}}</span>
+          <span class="meta-right" id="brand-display-right">{{BRAND_RIGHT}}</span>
+        </div>
+
+        <div class="image-stage" id="image-stage"></div>
+
+        <div class="typo-container" id="typo-block">
+          <div class="circle-ring" id="circle-ring"></div>
+          <div style="position:relative; display:inline-block;">
+            <div class="line-top" id="text-line1"></div>
+            <div class="strike-laser" id="laser-bar"></div>
+          </div>
+          <div class="line-mid" id="text-line-mid" style="display:none;"></div>
+          <div class="line-bot" id="text-line2"></div>
+          <div class="sparkle-star" id="star-sparkle" style="top:-10px; right:-15px;">✦</div>
+          <div class="cta-arrow" id="cta-arrow">↓</div>
+        </div>
+
+        <div class="lower-sub" id="lower-sub"></div>
+      </div>
+      <button class="btn-replay" onclick="replayAnimation()">▶ Phát Lại Hiệu Ứng</button>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls-col">
+
+      <!-- TYPOGRAPHY PANEL -->
+      <div class="panel" id="panel-typo">
+        <div class="panel-title">
+          <span>✏️ Typography</span>
+          <span class="subtitle" id="current-scene-label">Đang chỉnh: Màn 1</span>
+        </div>
+
+        <div class="text-inputs">
+          <div class="input-row">
+            <span class="input-tag">Dòng 1:</span>
+            <input type="text" class="text-field" id="input-line1" placeholder="Từ khóa chính" oninput="onTextChange()">
+          </div>
+          <div class="input-row">
+            <span class="input-tag">Dòng 2:</span>
+            <input type="text" class="text-field" id="input-line2" placeholder="Câu phụ" oninput="onTextChange()">
+          </div>
+        </div>
+
+        <div class="cat-tabs" id="cat-tabs">
+          <button class="btn-cat active" onclick="filterCat('all', this)">TẤT CẢ (35)</button>
+          <button class="btn-cat" onclick="filterCat('set1', this)">XÂY KÊNH (9)</button>
+          <button class="btn-cat" onclick="filterCat('set2', this)">CHIẾN LƯỢC (8+1)</button>
+          <button class="btn-cat" onclick="filterCat('set3', this)">BRANDING (9)</button>
+          <button class="btn-cat" onclick="filterCat('set4', this)">CẢM HỨNG (9)</button>
+        </div>
+        <div class="styles-grid" id="styles-grid"></div>
+
+        <div class="slider-row">
+          <div class="slider-group">
+            <div class="slider-label"><span>📐 Cỡ Dòng 1:</span><span id="val-s1">54px</span></div>
+            <input type="range" min="24" max="75" value="54" class="slider" id="slider-s1" oninput="onSliderS1(this.value)">
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>📐 Cỡ Dòng 2:</span><span id="val-s2">22px</span></div>
+            <input type="range" min="14" max="60" value="22" class="slider" id="slider-s2" oninput="onSliderS2(this.value)">
+          </div>
+        </div>
+        <div class="slider-group" style="margin-top:6px;">
+          <div class="slider-label"><span>↕️ Vị Trí Dọc:</span><span id="val-posy">260px</span></div>
+          <input type="range" min="40" max="400" value="260" class="slider" id="slider-posy" oninput="onSliderPosY(this.value)">
+        </div>
+      </div>
+
+      <!-- VISUAL PANEL -->
+      <div class="panel" id="panel-visual">
+        <div class="panel-title">
+          <span>🖼️ Visual / B-Roll</span>
+          <span class="subtitle">Chọn hình ảnh hoặc video phủ</span>
+        </div>
+
+        <div class="visual-toggle">
+          <button class="btn-toggle active" id="btn-mode-image" onclick="setVisualMode('image')">🖼️ Ảnh Minh Họa</button>
+          <button class="btn-toggle" id="btn-mode-broll" onclick="setVisualMode('broll')">🎬 Video B-Roll</button>
+          <button class="btn-toggle" id="btn-mode-none" onclick="setVisualMode('none')">✕ Không</button>
+        </div>
+
+        <!-- Image presets -->
+        <div id="image-section">
+          <div class="presets-grid" id="presets-grid"></div>
+
+          <div id="img-controls-wrap" class="img-controls">
+            <div class="disabled-notice" id="size-disabled-notice">⚠ Preset này cố định kích thước, không cần chỉnh</div>
+            <div id="img-slider-wrap">
+              <div class="slider-group">
+                <div class="slider-label"><span>📏 Kích thước:</span><span id="val-img-scale">100%</span></div>
+                <input type="range" min="50" max="150" value="100" class="slider" id="slider-img-scale" oninput="onImgScale(this.value)">
+              </div>
+              <div class="slider-label" style="margin-top:6px;"><span>📍 Vị trí:</span></div>
+              <div class="pos-btns">
+                <button class="btn-pos active" onclick="setImgPos('tr', this)">↗ Phải</button>
+                <button class="btn-pos" onclick="setImgPos('tl', this)">↖ Trái</button>
+                <button class="btn-pos" onclick="setImgPos('center', this)">☩ Giữa</button>
+                <button class="btn-pos" onclick="setImgPos('half', this)">⬆ Nửa Trên</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Motion -->
+          <div style="margin-top:8px;">
+            <div class="slider-label" style="margin-bottom:4px;"><span>🎬 Chuyển Động Ảnh:</span></div>
+            <div class="motion-grid" id="motion-grid">
+              <button class="btn-motion active" onclick="setMotion(1, this)">✨ 3D Pop</button>
+              <button class="btn-motion" onclick="setMotion(2, this)">⚡ Slide Drift</button>
+              <button class="btn-motion" onclick="setMotion(3, this)">💥 Zoom Blur</button>
+              <button class="btn-motion" onclick="setMotion(4, this)">📷 Polaroid</button>
+              <button class="btn-motion" onclick="setMotion(5, this)">🔮 Hologram</button>
+              <button class="btn-motion" onclick="setMotion(6, this)">🌊 Fade In</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- B-Roll controls -->
+        <div class="broll-controls" id="broll-section">
+          <div class="broll-time-row">
+            <div class="time-input-group">
+              <label>Chèn từ (giây):</label>
+              <input type="number" step="0.1" class="time-input" id="broll-insert-start" value="0" oninput="onBrollTimeChange()">
+            </div>
+            <div class="time-input-group">
+              <label>Chèn đến (giây):</label>
+              <input type="number" step="0.1" class="time-input" id="broll-insert-end" value="3" oninput="onBrollTimeChange()">
+            </div>
+          </div>
+          <div class="broll-duration" id="broll-duration">Thời lượng: 3.0s</div>
+          <div class="broll-time-row">
+            <div class="time-input-group">
+              <label>Trim clip từ:</label>
+              <input type="number" step="0.1" class="time-input" id="broll-trim-start" value="0">
+            </div>
+            <div class="time-input-group">
+              <label>Trim clip đến:</label>
+              <input type="number" step="0.1" class="time-input" id="broll-trim-end" value="3">
+            </div>
+          </div>
+          <div class="broll-file-input">
+            <input type="text" class="time-input" id="broll-filename" placeholder="Tên file video (VD: quay_man_hinh.mp4)" style="flex:1;">
+            <label class="btn-browse">
+              Chọn File
+              <input type="file" accept="video/*" style="display:none;" onchange="onBrollFileSelect(this)">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADVANCED DRAWER -->
+      <details class="drawer">
+        <summary>⚙️ Tùy Chỉnh Nâng Cao ▾</summary>
+        <div class="drawer-content">
+          <!-- Typography motion -->
+          <div>
+            <div class="slider-label" style="margin-bottom:4px;"><span>🎬 Chuyển Động Chữ:</span></div>
+            <div class="motion-grid">
+              <button class="btn-motion active" id="typo-motion-1" onclick="setTypoMotion(1, this)">✨ Blur Pop</button>
+              <button class="btn-motion" id="typo-motion-2" onclick="setTypoMotion(2, this)">⚡ Elastic</button>
+              <button class="btn-motion" id="typo-motion-3" onclick="setTypoMotion(3, this)">🌊 Float</button>
+              <button class="btn-motion" id="typo-motion-4" onclick="setTypoMotion(4, this)">💥 Zoom</button>
+            </div>
+          </div>
+
+          <!-- Shadow/glow sliders -->
+          <div class="slider-row">
+            <div class="slider-group">
+              <div class="slider-label"><span>Độ Đậm Bóng:</span><span id="val-shadow-op">45%</span></div>
+              <input type="range" min="0" max="100" value="45" class="slider" id="slider-shadow-op" oninput="onShadowChange()">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Độ Sáng Glow:</span><span id="val-glow">65%</span></div>
+              <input type="range" min="0" max="100" value="65" class="slider" id="slider-glow" oninput="onShadowChange()">
+            </div>
+          </div>
+
+          <!-- Brand Tag editor -->
+          <div>
+            <div class="slider-label" style="margin-bottom:4px;"><span>🏷️ Brand Tag:</span></div>
+            <div class="brand-inputs">
+              <div class="brand-group">
+                <label>Trái:</label>
+                <input type="text" class="brand-input" id="brand-left" value="{{BRAND_LEFT}}" oninput="onBrandChange()">
+              </div>
+              <div class="brand-group">
+                <label>Giữa:</label>
+                <input type="text" class="brand-input" id="brand-center" value="{{BRAND_CENTER}}" oninput="onBrandChange()">
+              </div>
+              <div class="brand-group">
+                <label>Phải:</label>
+                <input type="text" class="brand-input" id="brand-right" value="{{BRAND_RIGHT}}" oninput="onBrandChange()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- BOTTOM DOCK -->
+  <div class="bottom-dock">
+    <div class="dock-summary" id="dock-summary"></div>
+    <button class="btn-export" onclick="exportConfig()">
+      <div class="export-label">📋 XUẤT CẤU HÌNH ĐẦY ĐỦ (JSON)</div>
+      <div class="export-badge" id="export-badge">SẴN SÀNG</div>
+    </button>
+    <div class="toast" id="toast-msg"></div>
+  </div>
+
+  <script>
+    /* ============================================================ */
+    /* DATA INJECTION (filled by generate_studio.py)                 */
+    /* ============================================================ */
+    const STYLES_DB = {{STYLES_DB_JSON}};
+    const PRESETS_DB = {{PRESETS_DB_JSON}};
+    const SCENES_DATA = {{SCENES_JSON}};
+    const FRAME_IMAGES = {{FRAME_IMAGES_JSON}};
+    const AI_IMAGES = {{AI_IMAGES_JSON}};
+
+    const VIDEO_NAME = '{{VIDEO_NAME}}';
+    const VIDEO_DURATION = {{VIDEO_DURATION}};
+
+    /* ============================================================ */
+    /* STATE                                                         */
+    /* ============================================================ */
+    let activeScene = 0;
+    let currentTypoMotion = 1;
+    let animTl = null;
+
+    // Per-scene config, initialized from SCENES_DATA
+    let sceneConfigs = SCENES_DATA.map((s, i) => ({
+      scene: s.scene,
+      type: s.type,
+      start: s.start,
+      end: s.end,
+      // Typography
+      typo: {
+        styleId: STYLES_DB[0].id,
+        line1: s.line1 || '',
+        line2: s.line2 || '',
+        size1: 54,
+        size2: 22,
+        posY: s.type === 'hook' ? 260 : (s.type === 'insight' ? 95 : 250),
+        motion: 1,
+        shadowOp: 45,
+        glowInt: 65
+      },
+      // Visual
+      visual: {
+        mode: 'image', // 'image' | 'broll' | 'none'
+        presetId: 'IMG-01',
+        imgScale: 100,
+        imgPos: 'tr',
+        imgMotion: 1,
+        brollFile: '',
+        brollInsertStart: s.start,
+        brollInsertEnd: s.end,
+        brollTrimStart: 0,
+        brollTrimEnd: parseFloat((s.end - s.start).toFixed(1))
+      },
+      configured: false
+    }));
+
+    /* ============================================================ */
+    /* DOM REFS                                                      */
+    /* ============================================================ */
+    const $l1 = document.getElementById('text-line1');
+    const $l2 = document.getElementById('text-line2');
+    const $lmid = document.getElementById('text-line-mid');
+    const $typoBlock = document.getElementById('typo-block');
+    const $bgFrame = document.getElementById('bg-frame-img');
+    const $phone = document.getElementById('phone-preview');
+    const $laserBar = document.getElementById('laser-bar');
+    const $circleRing = document.getElementById('circle-ring');
+    const $starSparkle = document.getElementById('star-sparkle');
+    const $ctaArrow = document.getElementById('cta-arrow');
+    const $lowerSub = document.getElementById('lower-sub');
+    const $imageStage = document.getElementById('image-stage');
+
+    /* ============================================================ */
+    /* SCENE TAB RENDERING                                           */
+    /* ============================================================ */
+    function renderSceneTabs() {
+      const nav = document.getElementById('scene-tabs-nav');
+      nav.innerHTML = '';
+      sceneConfigs.forEach((sc, i) => {
+        const typeLabels = { hook: '🎯 HOOK', insight: '💡 INSIGHT', cta: '📣 CTA', lower: '📝 LOWER' };
+        const tab = document.createElement('div');
+        tab.className = `scene-tab ${i === activeScene ? 'active' : ''} ${sc.configured ? 'configured' : ''}`;
+        tab.innerHTML = `
+          <span class="tab-label">Màn ${sc.scene}</span>
+          <span class="tab-type">${typeLabels[sc.type] || sc.type}</span>
+          <span class="tab-time">${sc.start.toFixed(1)}s — ${sc.end.toFixed(1)}s</span>
+          <span class="tab-status">${sc.configured ? '✅ Đã cấu hình' : '○ Chưa chọn'}</span>
+        `;
+        tab.onclick = () => switchScene(i);
+        nav.appendChild(tab);
+      });
+    }
+
+    function switchScene(idx) {
+      // Save current state
+      saveCurrentSceneState();
+      activeScene = idx;
+      renderSceneTabs();
+      loadSceneState(idx);
+      updateDockSummary();
+    }
+
+    /* ============================================================ */
+    /* STATE SAVE / LOAD                                             */
+    /* ============================================================ */
+    function saveCurrentSceneState() {
+      const sc = sceneConfigs[activeScene];
+      const inp1 = document.getElementById('input-line1');
+      const inp2 = document.getElementById('input-line2');
+      sc.typo.line1 = inp1.value;
+      sc.typo.line2 = inp2.value;
+      sc.typo.size1 = parseInt(document.getElementById('slider-s1').value);
+      sc.typo.size2 = parseInt(document.getElementById('slider-s2').value);
+      sc.typo.posY = parseInt(document.getElementById('slider-posy').value);
+      sc.typo.shadowOp = parseInt(document.getElementById('slider-shadow-op').value);
+      sc.typo.glowInt = parseInt(document.getElementById('slider-glow').value);
+
+      // Visual
+      if (sc.visual.mode === 'broll') {
+        sc.visual.brollInsertStart = parseFloat(document.getElementById('broll-insert-start').value) || 0;
+        sc.visual.brollInsertEnd = parseFloat(document.getElementById('broll-insert-end').value) || 0;
+        sc.visual.brollTrimStart = parseFloat(document.getElementById('broll-trim-start').value) || 0;
+        sc.visual.brollTrimEnd = parseFloat(document.getElementById('broll-trim-end').value) || 0;
+        sc.visual.brollFile = document.getElementById('broll-filename').value;
+      }
+
+      // Mark as configured if user has set text
+      if (sc.typo.line1.trim()) sc.configured = true;
+    }
+
+    function loadSceneState(idx) {
+      const sc = sceneConfigs[idx];
+
+      // Update label
+      document.getElementById('current-scene-label').textContent = `Đang chỉnh: Màn ${sc.scene} (${sc.type.toUpperCase()})`;
+
+      // Text inputs
+      document.getElementById('input-line1').value = sc.typo.line1;
+      document.getElementById('input-line2').value = sc.typo.line2;
+
+      // Sliders
+      setSlider('slider-s1', 'val-s1', sc.typo.size1, 'px');
+      setSlider('slider-s2', 'val-s2', sc.typo.size2, 'px');
+      setSlider('slider-posy', 'val-posy', sc.typo.posY, 'px');
+      setSlider('slider-shadow-op', 'val-shadow-op', sc.typo.shadowOp, '%');
+      setSlider('slider-glow', 'val-glow', sc.typo.glowInt, '%');
+
+      // Background frame
+      const frameKey = String(sc.scene);
+      if (FRAME_IMAGES[frameKey]) {
+        $bgFrame.src = FRAME_IMAGES[frameKey];
+        $bgFrame.style.opacity = '1';
+        $bgFrame.style.display = 'block';
+      }
+
+      // Phone preview context
+      if (sc.type === 'hook') {
+        $bgFrame.style.display = 'none';
+        $phone.style.background = 'radial-gradient(circle at 50% 50%, #1e1b17 0%, #0c0b09 70%, #000 100%)';
+        $ctaArrow.style.display = 'none';
+      } else if (sc.type === 'cta') {
+        $bgFrame.style.display = 'none';
+        $phone.style.background = 'radial-gradient(circle at 50% 55%, #1f1b0c 0%, #0d0c07 70%, #000 100%)';
+        $ctaArrow.style.display = 'block';
+      } else {
+        $bgFrame.style.display = 'block';
+        $bgFrame.style.opacity = '1';
+        $phone.style.background = '#000';
+        $ctaArrow.style.display = 'none';
+      }
+
+      // Lower subtitle from SRT
+      const srtText = SCENES_DATA[idx]?.srt_text || '';
+      $lowerSub.textContent = srtText;
+      $lowerSub.style.display = srtText ? 'block' : 'none';
+
+      // Typography style
+      const style = STYLES_DB.find(s => s.id === sc.typo.styleId) || STYLES_DB[0];
+      applyTypoStyle(style, sc.typo.line1, sc.typo.line2);
+      highlightActiveStyle(sc.typo.styleId);
+
+      // Visual mode
+      setVisualMode(sc.visual.mode, true);
+      if (sc.visual.mode === 'image') {
+        highlightActivePreset(sc.visual.presetId);
+        updateImagePreview();
+      } else if (sc.visual.mode === 'broll') {
+        document.getElementById('broll-insert-start').value = sc.visual.brollInsertStart;
+        document.getElementById('broll-insert-end').value = sc.visual.brollInsertEnd;
+        document.getElementById('broll-trim-start').value = sc.visual.brollTrimStart;
+        document.getElementById('broll-trim-end').value = sc.visual.brollTrimEnd;
+        document.getElementById('broll-filename').value = sc.visual.brollFile;
+        onBrollTimeChange();
+      }
+
+      // Typography position
+      $typoBlock.style.bottom = sc.typo.posY + 'px';
+
+      replayAnimation();
+    }
+
+    function setSlider(sliderId, valId, val, suffix) {
+      const slider = document.getElementById(sliderId);
+      const valEl = document.getElementById(valId);
+      if (slider) slider.value = val;
+      if (valEl) valEl.textContent = val + suffix;
+    }
+
+    /* ============================================================ */
+    /* TYPOGRAPHY                                                    */
+    /* ============================================================ */
+    function renderStylesGrid() {
+      const grid = document.getElementById('styles-grid');
+      grid.innerHTML = '';
+      STYLES_DB.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-style';
+        btn.setAttribute('data-set', s.set);
+        btn.setAttribute('data-id', s.id);
+        const fontName = s.f1.replace(/'/g, '').split(',')[0];
+        btn.innerHTML = `
+          <div><span class="style-dot" style="background:${s.c1};box-shadow:0 0 5px ${s.c1}"></span><b>${s.name}</b></div>
+          <small style="opacity:0.55;margin-left:10px;">${fontName}</small>
+        `;
+        btn.onclick = () => selectStyle(s);
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectStyle(s) {
+      const sc = sceneConfigs[activeScene];
+      sc.typo.styleId = s.id;
+      // Don't override user-customized sizes — only set if user hasn't touched them
+      // (We always set on first selection for that scene)
+      if (!sc.configured) {
+        sc.typo.size1 = s.s1 || 54;
+        sc.typo.size2 = s.s2 || 22;
+        setSlider('slider-s1', 'val-s1', sc.typo.size1, 'px');
+        setSlider('slider-s2', 'val-s2', sc.typo.size2, 'px');
+      }
+      sc.configured = true;
+      highlightActiveStyle(s.id);
+      applyTypoStyle(s, sc.typo.line1, sc.typo.line2);
+      updateDockSummary();
+      renderSceneTabs();
+    }
+
+    function highlightActiveStyle(styleId) {
+      document.querySelectorAll('.btn-style').forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.getAttribute('data-id')) === styleId);
+      });
+    }
+
+    function applyTypoStyle(s, text1, text2) {
+      $l1.innerText = text1;
+      $l2.innerText = text2;
+      $l2.style.display = text2.trim() ? 'block' : 'none';
+
+      const sc = sceneConfigs[activeScene];
+      $l1.style.fontSize = sc.typo.size1 + 'px';
+      $l2.style.fontSize = sc.typo.size2 + 'px';
+
+      $l1.style.fontFamily = s.f1;
+      $l1.style.fontWeight = s.f1Weight || '700';
+      $l1.style.fontStyle = s.f1Style || 'normal';
+      $l2.style.fontFamily = s.f2 || 'inherit';
+      $l2.style.fontWeight = s.f2Weight || '700';
+      $l2.style.fontStyle = s.f2Style || 'normal';
+
+      // Overlap
+      $l2.style.marginTop = (s.ov || 0) + 'px';
+
+      // Special elements
+      $laserBar.style.display = s.isStrike ? 'block' : 'none';
+      $circleRing.style.display = s.isCircle ? 'block' : 'none';
+      $starSparkle.style.display = s.isStar ? 'block' : 'none';
+      $l1.className = s.isPill ? 'pill-badge' : 'line-top';
+
+      // Mid line (Style 13 fix!)
+      if (s.mid) {
+        $lmid.innerText = s.mid;
+        $lmid.style.display = 'block';
+        $lmid.style.fontFamily = s.fmid || s.f1;
+        $lmid.style.fontWeight = s.fmidWeight || '900';
+        $lmid.style.fontSize = (s.smid || 46) + 'px';
+        $lmid.style.color = s.c1;
+      } else {
+        $lmid.style.display = 'none';
+      }
+
+      updateTypoShadows(s);
+    }
+
+    function updateTypoShadows(s) {
+      if (!s) s = STYLES_DB.find(st => st.id === sceneConfigs[activeScene].typo.styleId) || STYLES_DB[0];
+      const sc = sceneConfigs[activeScene];
+      const glow = s.glow || '255, 235, 170';
+      const glowInt = sc.typo.glowInt / 100;
+      const shadowOp = sc.typo.shadowOp / 100;
+
+      $l1.style.color = s.c1;
+      $l1.style.textShadow = `0 0 ${20*glowInt}px rgba(${glow},${0.85*glowInt}), 0 0 ${45*glowInt}px rgba(${glow},${0.5*glowInt}), 0 4px 8px rgba(0,0,0,0.9)`;
+      $l1.style.filter = `drop-shadow(0 4px 10px rgba(0,0,0,0.9))`;
+
+      if (s.c2) {
+        $l2.style.color = s.c2;
+        $l2.style.textShadow = `0 0 ${18*glowInt}px rgba(${glow},${0.75*glowInt}), 0 4px 10px rgba(0,0,0,${shadowOp})`;
+      }
+
+      if ($lmid.style.display !== 'none') {
+        $lmid.style.textShadow = `0 0 ${25*glowInt}px rgba(${glow},${0.9*glowInt}), 0 4px 8px rgba(0,0,0,0.9)`;
+      }
+    }
+
+    function filterCat(cat, btn) {
+      document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.btn-style').forEach(item => {
+        item.style.display = (cat === 'all' || item.getAttribute('data-set') === cat) ? 'flex' : 'none';
+      });
+    }
+
+    function onTextChange() {
+      const sc = sceneConfigs[activeScene];
+      sc.typo.line1 = document.getElementById('input-line1').value;
+      sc.typo.line2 = document.getElementById('input-line2').value;
+      $l1.innerText = sc.typo.line1;
+      $l2.innerText = sc.typo.line2;
+      $l2.style.display = sc.typo.line2.trim() ? 'block' : 'none';
+      sc.configured = true;
+      renderSceneTabs();
+    }
+
+    function onSliderS1(val) {
+      sceneConfigs[activeScene].typo.size1 = parseInt(val);
+      $l1.style.fontSize = val + 'px';
+      document.getElementById('val-s1').textContent = val + 'px';
+    }
+    function onSliderS2(val) {
+      sceneConfigs[activeScene].typo.size2 = parseInt(val);
+      $l2.style.fontSize = val + 'px';
+      document.getElementById('val-s2').textContent = val + 'px';
+    }
+    function onSliderPosY(val) {
+      sceneConfigs[activeScene].typo.posY = parseInt(val);
+      $typoBlock.style.bottom = val + 'px';
+      document.getElementById('val-posy').textContent = val + 'px';
+    }
+    function onShadowChange() {
+      const sc = sceneConfigs[activeScene];
+      sc.typo.shadowOp = parseInt(document.getElementById('slider-shadow-op').value);
+      sc.typo.glowInt = parseInt(document.getElementById('slider-glow').value);
+      document.getElementById('val-shadow-op').textContent = sc.typo.shadowOp + '%';
+      document.getElementById('val-glow').textContent = sc.typo.glowInt + '%';
+      updateTypoShadows();
+    }
+
+    /* ============================================================ */
+    /* VISUAL / IMAGE / B-ROLL                                       */
+    /* ============================================================ */
+    function renderPresetsGrid() {
+      const grid = document.getElementById('presets-grid');
+      grid.innerHTML = '';
+      const icons = ['🃏', '⬆', '📱', '📷', '📲', '🎬', '⚖️', '🔵'];
+      PRESETS_DB.forEach((p, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-preset';
+        btn.setAttribute('data-id', p.id);
+        btn.innerHTML = `
+          <span class="preset-icon">${icons[i] || '🖼️'}</span>
+          <span>${p.id}</span>
+          <span class="preset-label">${p.name || ''}</span>
+        `;
+        btn.onclick = () => selectPreset(p);
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectPreset(p) {
+      const sc = sceneConfigs[activeScene];
+      sc.visual.presetId = p.id;
+      sc.visual.mode = 'image';
+      highlightActivePreset(p.id);
+      updateImageSizeControls(p);
+      updateImagePreview();
+      sc.configured = true;
+      updateDockSummary();
+      renderSceneTabs();
+    }
+
+    function highlightActivePreset(presetId) {
+      document.querySelectorAll('.btn-preset').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-id') === presetId);
+      });
+    }
+
+    function updateImageSizeControls(p) {
+      const notice = document.getElementById('size-disabled-notice');
+      const sliderWrap = document.getElementById('img-slider-wrap');
+      // Fullscreen and half-screen presets don't need size/position
+      if (p && (p.id === 'IMG-02' || p.id === 'IMG-03')) {
+        notice.style.display = 'block';
+        sliderWrap.style.display = 'none';
+      } else {
+        notice.style.display = 'none';
+        sliderWrap.style.display = 'block';
+      }
+    }
+
+    function updateImagePreview() {
+      const sc = sceneConfigs[activeScene];
+      const p = PRESETS_DB.find(pr => pr.id === sc.visual.presetId);
+      if (!p) return;
+      // Clear stage
+      $imageStage.innerHTML = '';
+
+      // Get AI image for this scene
+      const aiImg = AI_IMAGES[String(sc.scene)] || '';
+      if (!aiImg) return;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'image-overlay';
+      const img = document.createElement('img');
+      img.src = aiImg;
+
+      // Apply preset positioning
+      const scale = sc.visual.imgScale / 100;
+      if (p.id === 'IMG-03') {
+        // Fullscreen
+        overlay.style.inset = '0';
+        overlay.style.borderRadius = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+      } else if (p.id === 'IMG-02') {
+        // Half top
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '48%';
+        overlay.style.borderRadius = '0 0 16px 16px';
+      } else {
+        const baseSize = 140;
+        const size = baseSize * scale;
+        overlay.style.width = size + 'px';
+        overlay.style.height = size + 'px';
+        const pos = sc.visual.imgPos;
+        if (pos === 'tr') { overlay.style.top = '50px'; overlay.style.right = '14px'; }
+        else if (pos === 'tl') { overlay.style.top = '50px'; overlay.style.left = '14px'; }
+        else if (pos === 'center') { overlay.style.top = '50%'; overlay.style.left = '50%'; overlay.style.transform = `translate(-50%, -50%) scale(${scale})`; }
+        else if (pos === 'half') { overlay.style.top = '50px'; overlay.style.left = '50%'; overlay.style.transform = `translateX(-50%) scale(${scale})`; }
+
+        if (p.id === 'IMG-04') {
+          overlay.style.transform += ' rotate(-4deg)';
+          overlay.style.border = '6px solid #fff';
+          overlay.style.borderRadius = '4px';
+          overlay.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+        }
+        if (p.id === 'IMG-08') {
+          overlay.style.borderRadius = '50%';
+          overlay.style.border = '3px solid #FFD700';
+          overlay.style.boxShadow = '0 0 20px rgba(255,215,0,0.5)';
+        }
+      }
+
+      overlay.appendChild(img);
+      $imageStage.appendChild(overlay);
+    }
+
+    function setVisualMode(mode, silent) {
+      const sc = sceneConfigs[activeScene];
+      sc.visual.mode = mode;
+
+      document.getElementById('btn-mode-image').classList.toggle('active', mode === 'image');
+      document.getElementById('btn-mode-broll').classList.toggle('active', mode === 'broll');
+      document.getElementById('btn-mode-none').classList.toggle('active', mode === 'none');
+
+      document.getElementById('image-section').style.display = (mode === 'image') ? 'block' : 'none';
+      document.getElementById('broll-section').style.display = (mode === 'broll') ? 'flex' : 'none';
+
+      const brollVideo = document.getElementById('broll-video');
+      const liveTag = document.getElementById('live-tag');
+      if (mode === 'broll') {
+        brollVideo.style.display = 'block';
+        liveTag.style.display = 'block';
+        $imageStage.innerHTML = '';
+      } else {
+        brollVideo.style.display = 'none';
+        liveTag.style.display = 'none';
+        if (mode === 'image') updateImagePreview();
+        else $imageStage.innerHTML = '';
+      }
+
+      if (!silent) {
+        sc.configured = true;
+        updateDockSummary();
+        renderSceneTabs();
+      }
+    }
+
+    function setImgPos(pos, btn) {
+      sceneConfigs[activeScene].visual.imgPos = pos;
+      document.querySelectorAll('.btn-pos').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      updateImagePreview();
+    }
+
+    function onImgScale(val) {
+      sceneConfigs[activeScene].visual.imgScale = parseInt(val);
+      document.getElementById('val-img-scale').textContent = val + '%';
+      updateImagePreview();
+    }
+
+    function setMotion(id, btn) {
+      sceneConfigs[activeScene].visual.imgMotion = id;
+      document.querySelectorAll('#motion-grid .btn-motion').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+
+    function onBrollTimeChange() {
+      const start = parseFloat(document.getElementById('broll-insert-start').value) || 0;
+      const end = parseFloat(document.getElementById('broll-insert-end').value) || 0;
+      const dur = end - start;
+      const durEl = document.getElementById('broll-duration');
+      if (dur <= 0) {
+        durEl.textContent = '⚠ Thời điểm kết thúc phải lớn hơn bắt đầu!';
+        durEl.className = 'broll-duration error';
+      } else {
+        durEl.textContent = `Thời lượng: ${dur.toFixed(1)}s`;
+        durEl.className = 'broll-duration';
+      }
+    }
+
+    function onBrollFileSelect(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        document.getElementById('broll-filename').value = file.name;
+        const url = URL.createObjectURL(file);
+        const brollVideo = document.getElementById('broll-video');
+        brollVideo.src = url;
+        brollVideo.style.display = 'block';
+        brollVideo.play();
+        document.getElementById('live-tag').style.display = 'block';
+      }
+    }
+
+    /* ============================================================ */
+    /* TYPOGRAPHY MOTION                                              */
+    /* ============================================================ */
+    function setTypoMotion(id, btn) {
+      currentTypoMotion = id;
+      sceneConfigs[activeScene].typo.motion = id;
+      document.querySelectorAll('[id^="typo-motion-"]').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      replayAnimation();
+    }
+
+    function replayAnimation() {
+      if (animTl) animTl.kill();
+      gsap.killTweensOf([$l1, $l2, $lmid, $typoBlock, $laserBar, $starSparkle]);
+      gsap.set([$l1, $l2, $lmid, $typoBlock], { x: 0, y: 0, scale: 1, opacity: 1, rotation: 0 });
+      updateTypoShadows();
+
+      animTl = gsap.timeline();
+      const motionId = sceneConfigs[activeScene].typo.motion || currentTypoMotion;
+
+      if (motionId === 1) {
+        animTl.fromTo($l1, { opacity: 0, y: 22, scale: 0.88, filter: "blur(14px)" },
+          { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.42, ease: "power2.out" });
+        if ($l2.style.display !== 'none') {
+          animTl.fromTo($l2, { opacity: 0, y: 28, scale: 0.85, filter: "blur(12px)" },
+            { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.45, ease: "power2.out" }, "-=0.25");
+        }
+        if ($lmid.style.display !== 'none') {
+          animTl.fromTo($lmid, { opacity: 0, scale: 0.8, filter: "blur(15px)" },
+            { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.4, ease: "power2.out" }, "-=0.3");
+        }
+      } else if (motionId === 2) {
+        animTl.fromTo($l1, { opacity: 0, y: -20, scale: 0.78 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(2.2)" });
+        if ($l2.style.display !== 'none') {
+          animTl.fromTo($l2, { opacity: 0, y: 35, scale: 0.82 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(2.4)" }, "-=0.25");
+        }
+      } else if (motionId === 3) {
+        animTl.fromTo($l1, { opacity: 0, y: 16, letterSpacing: "-0.04em" },
+          { opacity: 1, y: 0, letterSpacing: "-0.01em", duration: 0.6, ease: "power3.out" });
+        if ($l2.style.display !== 'none') {
+          animTl.fromTo($l2, { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" }, "-=0.4");
+        }
+        // NOTE: Removed infinite repeat to fix position calibration issue
+        animTl.to($typoBlock, { scale: 1.02, duration: 1.5, yoyo: true, repeat: 1, ease: "sine.inOut" });
+      } else if (motionId === 4) {
+        animTl.fromTo($typoBlock,
+          { opacity: 0, scale: 1.6, filter: "blur(18px) brightness(2.5)" },
+          { opacity: 1, scale: 1, filter: "blur(0px) brightness(1)", duration: 0.45, ease: "power3.out" });
+      }
+
+      // Special effects
+      const s = STYLES_DB.find(st => st.id === sceneConfigs[activeScene].typo.styleId) || STYLES_DB[0];
+      if (s.isStrike) gsap.fromTo($laserBar, { scaleX: 0 }, { scaleX: 1, duration: 0.35, delay: 0.3, ease: "power3.inOut" });
+      if (s.isStar) gsap.fromTo($starSparkle, { scale: 0, rotation: -90, opacity: 0 }, { scale: 1.2, rotation: 45, opacity: 1, duration: 0.5, delay: 0.35, ease: "back.out(2)" });
+    }
+
+    /* ============================================================ */
+    /* BRAND TAG                                                     */
+    /* ============================================================ */
+    function onBrandChange() {
+      document.getElementById('brand-display-left').textContent = document.getElementById('brand-left').value;
+      document.getElementById('brand-display-center').textContent = document.getElementById('brand-center').value;
+      document.getElementById('brand-display-right').textContent = document.getElementById('brand-right').value;
+    }
+
+    /* ============================================================ */
+    /* DOCK SUMMARY & EXPORT                                         */
+    /* ============================================================ */
+    function updateDockSummary() {
+      const dock = document.getElementById('dock-summary');
+      dock.innerHTML = '';
+      sceneConfigs.forEach(sc => {
+        const div = document.createElement('div');
+        div.className = `dock-scene ${sc.configured ? 'done' : ''}`;
+        const styleObj = STYLES_DB.find(s => s.id === sc.typo.styleId);
+        const styleName = styleObj ? styleObj.name : '—';
+        const visualLabel = sc.visual.mode === 'broll' ? `B-ROLL` :
+                           sc.visual.mode === 'image' ? sc.visual.presetId : 'Không';
+        div.innerHTML = `
+          <div class="scene-label">Màn ${sc.scene}: ${sc.type}</div>
+          <div>Chữ: ${styleName}</div>
+          <div>Hình: ${visualLabel}</div>
+        `;
+        dock.appendChild(div);
+      });
+
+      const allDone = sceneConfigs.every(sc => sc.configured);
+      document.getElementById('export-badge').textContent = allDone ? '✅ SẴN SÀNG' : `${sceneConfigs.filter(sc => sc.configured).length}/${sceneConfigs.length}`;
+    }
+
+    function exportConfig() {
+      saveCurrentSceneState();
+
+      const config = {
+        video: VIDEO_NAME,
+        duration: VIDEO_DURATION,
+        brand: {
+          left: document.getElementById('brand-left').value,
+          center: document.getElementById('brand-center').value,
+          right: document.getElementById('brand-right').value
+        },
+        scenes: sceneConfigs.map(sc => {
+          const result = {
+            scene: sc.scene,
+            type: sc.type,
+            time: `${sc.start.toFixed(1)}-${sc.end.toFixed(1)}`,
+            typography: {
+              style_id: String(sc.typo.styleId).padStart(2, '0'),
+              line1: sc.typo.line1,
+              line2: sc.typo.line2,
+              size1: sc.typo.size1,
+              size2: sc.typo.size2,
+              posY: sc.typo.posY,
+              motion: sc.typo.motion,
+              shadowOp: sc.typo.shadowOp,
+              glowInt: sc.typo.glowInt
+            },
+            visual: { type: sc.visual.mode }
+          };
+
+          if (sc.visual.mode === 'image') {
+            result.visual.preset = sc.visual.presetId;
+            result.visual.scale = sc.visual.imgScale;
+            result.visual.position = sc.visual.imgPos;
+            result.visual.motion = sc.visual.imgMotion;
+          } else if (sc.visual.mode === 'broll') {
+            result.visual.file = sc.visual.brollFile;
+            result.visual.insert = `${sc.visual.brollInsertStart}-${sc.visual.brollInsertEnd}`;
+            result.visual.trim = `${sc.visual.brollTrimStart}-${sc.visual.brollTrimEnd}`;
+          }
+
+          return result;
+        })
+      };
+
+      const jsonStr = JSON.stringify(config, null, 2);
+
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        const toast = document.getElementById('toast-msg');
+        toast.textContent = '✅ Đã copy JSON cấu hình đầy đủ! Paste vào chat Antigravity để render video.';
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 4000);
+      }).catch(() => {
+        prompt('Copy JSON cấu hình:', jsonStr);
+      });
+    }
+
+    /* ============================================================ */
+    /* INIT                                                          */
+    /* ============================================================ */
+    renderStylesGrid();
+    renderPresetsGrid();
+    renderSceneTabs();
+    updateDockSummary();
+
+    if (document.fonts) {
+      document.fonts.ready.then(() => loadSceneState(0));
+    } else {
+      loadSceneState(0);
+    }
+  </script>
+</body>
+</html>
