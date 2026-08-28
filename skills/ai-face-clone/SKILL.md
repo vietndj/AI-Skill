@@ -1,7 +1,8 @@
 ---
 name: ai-face-clone
 description: >-
-  Kích hoạt khi người dùng yêu cầu tạo ảnh, avatar, poster, mockup, storyboard, hoặc ảnh đời thường/lifestyle có khuôn mặt của chính họ.
+  Kích hoạt khi người dùng yêu cầu tạo ảnh, avatar, poster, mockup, storyboard, hoặc ảnh đời thường/lifestyle có khuôn mặt của chính họ,
+  hoặc khi người dùng yêu cầu "setup khuôn mặt", "tạo hồ sơ khuôn mặt", "cài đặt nhận dạng khuôn mặt", "làm ảnh giống tôi".
   Tự động nạp dữ liệu nhận dạng khuôn mặt (Face Catalog), gắn ảnh mỏ neo (Visual Anchor) vào ImagePaths của generate_image,
   tự động chèn Face DNA Prompt và duy trì đồng nhất trang phục (Wardrobe Continuity) 100% tự nhiên.
 ---
@@ -32,7 +33,7 @@ Kỹ năng này biến Antigravity thành Studio Sáng Tạo Hình Ảnh Cá Nh�
 
 3. **Thực Thi Sinh Ảnh Chuẩn Điện Ảnh**:
    - Gọi tool `generate_image`:
-     - Tham số `ImagePaths`: Nạp danh sách 1-3 ảnh chân dung mẫu từ `~/.gemini/avatar_photos/`.
+     - Tham số `ImagePaths`: Nạp danh sách 1-3 ảnh chân dung mẫu từ `~/.gemini/avatar_photos/` hoặc thư mục ảnh đã quét.
      - Tham số `Prompt`: Ghép theo công thức chuẩn:
        `[Subject Face Anchor] + [Attire/Wardrobe Anchor] + [Action/Pose] + [Setting/Lighting/Cinematography] + [Aspect Ratio / Camera Specs]`
      - Tham số `AspectRatio`: '1:1' cho Avatar/Square, '9:16' cho Story/Reel, '16:9' cho Banner/Thumbnail, '4:3' cho Phân cảnh.
@@ -42,18 +43,18 @@ Kỹ năng này biến Antigravity thành Studio Sáng Tạo Hình Ảnh Cá Nh�
 
 ---
 
-## 2. Cấu Trúc Hồ Sơ Nhân Dạng Chuẩn (`face_catalog.json`)
+## 2. Quy Trình Onboarding Tự Động Trong Chat (Interactive Chat Setup)
+
+Khi người dùng nói: *"Setup khuôn mặt của tôi"* hoặc *"Cài đặt hồ sơ khuôn mặt"*:
+1. **Quét ảnh tự động**: Chạy ngay lệnh `python3 ~/.gemini/config/skills/ai-face-clone/scripts/setup_face_profile.py`.
+2. **Khởi tạo hồ sơ**: Nếu tìm thấy ảnh trong máy, tự động tạo `face_catalog.json`.
+3. **Sinh ảnh Chào Mừng (Welcome Render)**: Tự động gọi `generate_image` tạo 1 ảnh Avatar Studio hoặc Bàn Gỗ đầu tiên để người dùng thấy ngay hiệu quả trong 30 giây đầu tiên.
+
+---
+
+## 3. Cấu Trúc Hồ Sơ Nhân Dạng Chuẩn (`face_catalog.json`)
 
 Hồ sơ được lưu trữ tại `~/.gemini/avatar_photos/face_catalog.json`:
 - Chứa thông số nhân trắc học, độ tuổi, vóc dáng, màu tóc, dáng mắt, sống mũi, nụ cười.
 - Chứa danh sách ảnh mỏ neo thực tế.
 - Chứa bộ mã trang phục chuẩn theo từng bối cảnh.
-
----
-
-## 3. Lệnh Thiết Lập Nhanh Cho Người Dùng Mới
-
-Người dùng có thể yêu cầu trợ lý AI tự động cài đặt hồ sơ khuôn mặt bằng cách:
-1. Thả 3-5 ảnh chân dung vào thư mục `~/.gemini/avatar_photos/`.
-2. Chat với Antigravity: `"Setup khuôn mặt của tôi"` hoặc `"Tạo hồ sơ khuôn mặt AI"`.
-3. AI sẽ tự động chạy script `python3 ~/.gemini/config/skills/ai-face-clone/scripts/setup_face_profile.py` để quét ảnh và thiết lập toàn bộ hệ thống.

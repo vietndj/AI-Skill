@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Setup Face Profile Generator for Antigravity AI Face Clone
-Tự động quét ảnh chân dung, trích xuất cấu hình và tạo face_catalog.json chuẩn hóa.
+Setup Face Profile Generator for Antigravity AI Face Clone (v2.4 Pro)
+Tự động quét ảnh thông minh (Auto-Discovery), trích xuất cấu hình và tạo face_catalog.json chuẩn hóa.
 """
 
 import os
 import sys
 import json
 import glob
+import shutil
 import argparse
 from pathlib import Path
 
@@ -16,22 +17,65 @@ DEFAULT_PHOTO_DIR = Path.home() / ".gemini" / "avatar_photos"
 DEFAULT_CATALOG_PATH = DEFAULT_PHOTO_DIR / "face_catalog.json"
 DEFAULT_RULE_PATH = Path.home() / ".gemini" / "config" / "rules" / "ai_face_clone.md"
 
+VALID_EXTENSIONS = ("*.jpg", "*.jpeg", "*.png", "*.webp", "*.JPG", "*.JPEG", "*.PNG", "*.WEBP")
+
+SEARCH_CANDIDATES = [
+    DEFAULT_PHOTO_DIR,
+    Path.cwd() / "assets" / "ava",
+    Path.cwd() / "assets" / "avatar",
+    Path.cwd() / "assets" / "photos",
+    Path.cwd() / "photos",
+    Path.cwd() / "avatars",
+    Path.home() / "Pictures" / "Avatar",
+    Path.home() / "Pictures",
+    Path.home() / "Desktop" / "anhchup",
+    Path.home() / "Desktop"
+]
+
 def ensure_dirs():
     DEFAULT_PHOTO_DIR.mkdir(parents=True, exist_ok=True)
     DEFAULT_RULE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-def find_photos(photo_dir):
-    valid_exts = ("*.jpg", "*.jpeg", "*.png", "*.webp", "*.JPG", "*.JPEG", "*.PNG", "*.WEBP")
+def find_photos_in_dir(photo_dir):
     photos = []
-    for ext in valid_exts:
+    if not Path(photo_dir).exists():
+        return []
+    for ext in VALID_EXTENSIONS:
         photos.extend(glob.glob(str(Path(photo_dir) / ext)))
     return sorted(list(set(photos)))
+
+def auto_discover_photos(custom_dir=None):
+    """Tự động tìm kiếm ảnh chân dung từ các thư mục tiềm năng"""
+    if custom_dir and Path(custom_dir).exists():
+        found = find_photos_in_dir(custom_dir)
+        if found:
+            return custom_dir, found
+
+    # Tìm trong thư mục mặc định trước
+    default_found = find_photos_in_dir(DEFAULT_PHOTO_DIR)
+    if default_found:
+        return DEFAULT_PHOTO_DIR, default_found
+
+    # Quét các thư mục tiềm năng khác trong dự án hoặc máy
+    for candidate in SEARCH_CANDIDATES:
+        found = find_photos_in_dir(candidate)
+        if found:
+            # Tự động sao chép tối đa 10 ảnh vào DEFAULT_PHOTO_DIR để gom về một mối
+            print(f"🔍 Phát hiện {len(found)} ảnh tại: {candidate}")
+            print(f"📦 Đang tự động liên kết vào: {DEFAULT_PHOTO_DIR}")
+            for p in found[:10]:
+                src_p = Path(p)
+                dst_p = DEFAULT_PHOTO_DIR / src_p.name
+                if not dst_p.exists():
+                    shutil.copy2(src_p, dst_p)
+            return DEFAULT_PHOTO_DIR, find_photos_in_dir(DEFAULT_PHOTO_DIR)
+
+    return DEFAULT_PHOTO_DIR, []
 
 def generate_catalog(name="Chủ Nhân", gender="male", age_range="28-36", ethnicity="Vietnamese / East Asian", 
                      build="Athletic, lean runner build, upright posture", hair="Short modern textured crop, dark black hair",
                      photo_dir=None, custom_anchor=None):
-    photo_dir = Path(photo_dir or DEFAULT_PHOTO_DIR).resolve()
-    photos = find_photos(photo_dir)
+    actual_dir, photos = auto_discover_photos(photo_dir)
     
     gender_word = "man" if gender.lower() in ("male", "nam", "m") else "woman"
     handsome_pretty = "handsome" if gender_word == "man" else "beautiful"
@@ -71,7 +115,7 @@ def generate_catalog(name="Chủ Nhân", gender="male", age_range="28-36", ethni
             "prompt_anchor_snippet": anchor_snippet
         },
         "dataset_metadata": {
-            "storage_dir": str(photo_dir),
+            "storage_dir": str(actual_dir),
             "total_images_found": len(photos),
             "reference_photos": photos[:5] if photos else []
         }
@@ -111,31 +155,30 @@ def main():
     parser.add_argument("--name", type=str, default="Chủ Nhân", help="Tên chủ nhân hồ sơ")
     parser.add_argument("--gender", type=str, default="male", choices=["male", "female", "nam", "nu"], help="Giới tính")
     parser.add_argument("--age", type=str, default="28-36", help="Độ tuổi (ví dụ: 30-35)")
-    parser.add_argument("--photos-dir", type=str, default=str(DEFAULT_PHOTO_DIR), help="Thư mục chứa ảnh chân dung mẫu")
+    parser.add_argument("--photos-dir", type=str, default=None, help="Thư mục chứa ảnh chân dung mẫu")
     parser.add_argument("--anchor", type=str, default=None, help="Prompt anchor tùy biến")
     parser.add_argument("--out", type=str, default=str(DEFAULT_CATALOG_PATH), help="Đường dẫn lưu catalog JSON")
     
     args = parser.parse_args()
     ensure_dirs()
     
-    print("=" * 60)
-    print("🚀 ĐANG THIẾT LẬP HỒ SƠ KHUÔN MẶT AI CHO ANTIGRAVITY")
-    print("=" * 60)
+    print("=" * 65)
+    print("🚀 ĐANG THIẾT LẬP HỒ SƠ KHUÔN MẶT AI CHO ANTIGRAVITY (v2.4 PRO)")
+    print("=" * 65)
     
-    photo_dir = Path(args.photos_dir).resolve()
-    photos = find_photos(photo_dir)
-    print(f"📂 Thư mục ảnh: {photo_dir}")
-    print(f"📸 Tìm thấy {len(photos)} ảnh chân dung mỏ neo.")
+    actual_dir, photos = auto_discover_photos(args.photos_dir)
+    print(f"📂 Thư mục ảnh mỏ neo: {actual_dir}")
+    print(f"📸 Tìm thấy {len(photos)} ảnh chân dung mỏ neo hợp lệ.")
     
     if len(photos) == 0:
-        print("⚠️ CẢNH BÁO: Chưa tìm thấy ảnh nào trong thư mục.")
-        print(f"👉 Vui lòng copy 3-5 ảnh chân dung rõ mặt của bạn vào: {photo_dir}")
+        print("⚠️ CẢNH BÁO: Chưa tìm thấy ảnh nào trong các thư mục mặc định.")
+        print(f"👉 Vui lòng copy 3-5 ảnh chân dung rõ mặt của bạn vào: {DEFAULT_PHOTO_DIR}")
     
     catalog = generate_catalog(
         name=args.name,
         gender=args.gender,
         age_range=args.age,
-        photo_dir=photo_dir,
+        photo_dir=actual_dir,
         custom_anchor=args.anchor
     )
     
@@ -145,7 +188,7 @@ def main():
     print(f"✅ Đã lưu Face Catalog tại: {cat_file}")
     print(f"✅ Đã tạo Rule tự động kích hoạt tại: {rule_file}")
     print(f"🎯 Prompt Anchor mặc định: {catalog['profile']['prompt_anchor_snippet']}")
-    print("=" * 60)
+    print("=" * 65)
     print("🎉 HOÀN TẤT! Antigravity đã sẵn sàng tạo ảnh chuẩn khuôn mặt của bạn.")
 
 if __name__ == "__main__":
