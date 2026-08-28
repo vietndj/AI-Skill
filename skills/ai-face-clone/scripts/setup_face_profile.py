@@ -137,12 +137,19 @@ def generate_rule_file(catalog, rule_path=None):
     photos = catalog["dataset_metadata"]["reference_photos"]
     photos_str = json.dumps(photos, ensure_ascii=False)
     
-    rule_content = f"""# Quy Tắc Tự Động Nhân Bản Khuôn Mặt AI ({name})
+    rule_content = f"""# Quy Tắc Tự Động Nhân Bản Khuôn Mặt AI ({name}) - Closed-Loop Auto-Correction
 - **Quy tắc tuyệt đối**: Khi sinh ảnh minh họa / avatar / mockup / poster / storyboard bằng công cụ `generate_image`, Midjourney, Flux, SDXL,... nếu kịch bản có nhân vật đại diện (hoặc nhân vật chính) -> **MẶC ĐỊNH 100% nhân vật đó chính là {name}**.
 - **Hồ sơ nhân dạng (Visual Anchor)**:
   - Anchor Prompt: `{anchor}`
   - Kho ảnh tham chiếu: `{catalog["dataset_metadata"]["storage_dir"]}`
   - Ảnh mỏ neo ưu tiên (ImagePaths): `{photos_str}`
+- **Quy trình Tự Động Soi Ảnh & Đối Chiếu Nhân Dạng Bắt Buộc (Mặc định 100%)**:
+  1. **Mở mắt nhìn (`view_file`)**: Ngay khi `generate_image` sinh xong, AI BẮT BUỘC tự động gọi `view_file` xem ngay bức ảnh vừa tạo.
+  2. **Đối chiếu 3 nét đặc trưng**:
+     - *Khung xương mặt*: Dáng Oval, viền hàm sắc cạnh (defined jawline), cằm và gò má cân đối.
+     - *Đôi mắt*: Mắt mí lót sâu Á Đông, ánh mắt sáng có catchlight sống động (không để mắt 1 mí dẹt vô hồn).
+     - *Nụ cười*: Nụ cười rạng rỡ hở răng trên đều đặn hoặc khuôn miệng tự nhiên (không để hé môi đơ cứng).
+  3. **Tự động tinh chỉnh & sinh lại (Closed-Loop)**: Nếu độ giống <95%, AI tự động nạp ảnh vừa tạo cùng ảnh mỏ neo, viết lại prompt sắc nét hơn và sinh lại ngay (tối đa 3 vòng lặp) cho đến khi đạt độ giống >95% mới bàn giao cho người dùng.
 - **Quy tắc đồng nhất trang phục (Wardrobe Continuity)**:
   - Trong cùng một kịch bản/storyboard, nhân vật **BẮT BUỘC mặc CÙNG MỘT LOẠI QUẦN ÁO** xuyên suốt tất cả các cảnh.
 """

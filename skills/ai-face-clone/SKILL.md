@@ -31,12 +31,20 @@ Kỹ năng này biến Antigravity thành Studio Sáng Tạo Hình Ảnh Cá Nh�
      - `reference_images`: 1-3 đường dẫn ảnh chân dung thực tế chất lượng cao làm mỏ neo thị giác (`ImagePaths`).
      - `wardrobe_styles`: Phong cách trang phục tương ứng với bối cảnh (Studio, Bàn gỗ, Outdoor, Zen, Thể thao).
 
-3. **Thực Thi Sinh Ảnh Chuẩn Điện Ảnh**:
-   - Gọi tool `generate_image`:
-     - Tham số `ImagePaths`: Nạp danh sách 1-3 ảnh chân dung mẫu từ `~/.gemini/avatar_photos/` hoặc thư mục ảnh đã quét.
-     - Tham số `Prompt`: Ghép theo công thức chuẩn:
-       `[Subject Face Anchor] + [Attire/Wardrobe Anchor] + [Action/Pose] + [Setting/Lighting/Cinematography] + [Aspect Ratio / Camera Specs]`
-     - Tham số `AspectRatio`: '1:1' cho Avatar/Square, '9:16' cho Story/Reel, '16:9' cho Banner/Thumbnail, '4:3' cho Phân cảnh.
+3. **Thực Thi Sinh Ảnh Chuẩn Điện Ảnh & Vòng Lặp Phản Hồi Khép Kín (Closed-Loop Protocol)**:
+   - **Bước 1: Nạp mỏ neo & Face DNA**:
+     - Luôn nạp ảnh chân dung sắc nét nhất (`viet_avatar_002.jpg` hoặc ảnh mỏ neo phù hợp) vào tham số `ImagePaths` của `generate_image`.
+     - Ghép prompt theo công thức: `[Subject Face Anchor] + [Attire/Wardrobe Anchor] + [Action/Pose] + [Setting/Lighting/Cinematography] + [Aspect Ratio / Camera Specs]`.
+   - **Bước 2: Sinh ảnh (`generate_image`)**:
+     - Sinh ảnh theo tỷ lệ yêu cầu ('1:1', '3:4', '16:9', '9:16').
+   - **Bước 3: TỰ ĐỘNG SOI ẢNH BẰNG `view_file` (BẮT BUỘC 100%)**:
+     - Ngay sau khi tool trả về ảnh, AI **BẮT BUỘC dùng `view_file` mở ảnh vừa sinh lên xem trực quan ngay lập tức**.
+     - Tự động soi xét và chấm điểm 3 tiêu chí nhân dạng cốt lõi:
+       1. *Cấu trúc xương mặt*: Dáng mặt Oval thon gọn, đường viền hàm sắc cạnh (defined jawline), gò má cân đối (không để mặt dài oblong hoặc cằm thụt).
+       2. *Đôi mắt & Thần thái*: Mắt mí lót sâu Á Đông, ánh mắt sáng có catchlight sống động (không để mắt 1 mí mờ dẹt vô hồn).
+       3. *Nụ cười & Khuôn miệng*: Nụ cười sáng rạng rỡ hở cung răng trên đều đặn / khuôn miệng đĩnh đạc tự nhiên (không để miệng há hốc đơ cứng).
+   - **Bước 4: TỰ ĐỘNG TINH CHỈNH & SINH LẠI (Auto Self-Correction)**:
+     - Nếu độ giống **< 95%**, AI tự động bóc tách lỗi sai, nạp ảnh vừa sinh cùng ảnh mỏ neo gốc, viết lại prompt sắc nét hơn và sinh lại ngay lập tức (tối đa 3 vòng lặp) cho đến khi đạt độ giống >95% mới bàn giao cho anh Việt.
 
 4. **Nguyên Tắc Đồng Nhất Trang Phục (Wardrobe Continuity)**:
    - Khi sinh chuỗi ảnh liên hoàn (Storyboard 5-15 beats), **BẮT BUỘC giữ nguyên 100% một bộ trang phục** xuyên suốt tất cả các phân cảnh, không tự ý đổi đồ giữa chừng.
