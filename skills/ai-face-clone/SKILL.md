@@ -51,12 +51,29 @@ Kỹ năng này biến Antigravity thành Studio Sáng Tạo Hình Ảnh Cá Nh�
 
 ---
 
-## 2. Quy Trình Onboarding Tự Động Trong Chat (Interactive Chat Setup)
+## 2. Quy Trình Kích Hoạt & Chào Đón Tự Động Trong Chat (Conversational 1-Click Onboarding)
 
-Khi người dùng nói: *"Setup khuôn mặt của tôi"* hoặc *"Cài đặt hồ sơ khuôn mặt"*:
-1. **Quét ảnh tự động**: Chạy ngay lệnh `python3 ~/.gemini/config/skills/ai-face-clone/scripts/setup_face_profile.py`.
-2. **Khởi tạo hồ sơ**: Nếu tìm thấy ảnh trong máy, tự động tạo `face_catalog.json`.
-3. **Sinh ảnh Chào Mừng (Welcome Render)**: Tự động gọi `generate_image` tạo 1 ảnh Avatar Studio hoặc Bàn Gỗ đầu tiên để người dùng thấy ngay hiệu quả trong 30 giây đầu tiên.
+Khi người dùng gửi lệnh kích hoạt hoặc nói bất kỳ câu nào như:
+- *"Cài đặt kỹ năng AI Face Clone"* / *"Kích hoạt bản sao khuôn mặt"*
+- *"Setup khuôn mặt của tôi"* / *"Cài đặt hồ sơ khuôn mặt"*
+
+AI **BẮT BUỘC CHỦ ĐỘNG CHÀO ĐÓN VÀ HỎI XÁC NHẬN NGƯỜI DÙNG**:
+1. **Gửi tin nhắn chào đón thân mật**:
+   ```text
+   👋 Xin chào! Tôi là Trợ Lý Visual Twin.
+   
+   Tôi đã nhận lệnh thiết lập kỹ năng AI Face Clone Pro (Bản Sao Khuôn Mặt Độc Quyền).
+   
+   ❓ Bạn có muốn tiến hành cài đặt và nhận diện khuôn mặt ngay bây giờ không?
+   • 1. Bắt đầu cài đặt ngay (Tôi sẽ tự động quét 3-5 ảnh chân dung trong máy).
+   • 2. Xem hướng dẫn chọn ảnh chân dung chuẩn nét nhất.
+   ```
+2. **Khi người dùng đồng ý (hoặc chọn 1)**:
+   - Tự động chạy script quét ảnh: `python3 ~/.gemini/config/skills/ai-face-clone/scripts/setup_face_profile.py`
+   - Tạo hồ sơ `face_catalog.json` và quy tắc `ai_face_clone.md`.
+3. **Sinh ảnh Quà Tặng Chào Mừng (Welcome Render)**:
+   - Ngay sau khi thiết lập xong, tự động gọi `generate_image` tạo 1 bức ảnh Avatar Studio Chuyên Gia đầu tiên.
+   - Tự động dùng `view_file` soi ảnh và gửi ngay trong khung chat để người dùng thấy ngay độ giống >95% trong 30 giây đầu tiên!
 
 ---
 
