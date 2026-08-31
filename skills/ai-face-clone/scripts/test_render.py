@@ -10,7 +10,9 @@ import json
 import argparse
 from pathlib import Path
 
-DEFAULT_CATALOG = Path.home() / ".gemini" / "avatar_photos" / "face_catalog.json"
+SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+SKILL_DIR = SCRIPT_DIR.parent
+DEFAULT_CATALOG = SKILL_DIR / "assets" / "face_catalog.json"
 
 STYLES = {
     "1": {
@@ -52,15 +54,18 @@ def main():
     args = parser.parse_args()
 
     data = load_catalog(args.catalog)
-    if not data:
-        print("⚠️ Chưa tìm thấy face_catalog.json! Đang dùng hồ sơ mặc định...")
-        anchor = "a handsome 30s Vietnamese man with short neat textured black hair, defined jawline, athletic lean runner build, expressive dark eyes, authentic Asian facial features, clean smart attire"
+    # Detect uninitialized catalog (is_activated == false or empty subject_name)
+    if not data or (data.get("is_activated") == False and not data.get("subject_name")):
+        print("⚠️ Chưa tìm thấy face_catalog.json hoặc hồ sơ chưa được kích hoạt!")
+        print("👉 Vui lòng kích hoạt kỹ năng AI Face Clone trước (ném Thẻ Kích Hoạt vào chat hoặc chạy setup).")
+        anchor = "a person, authentic facial features, natural confident expression, clean professional attire"
         attire_formal = "wearing a tailored executive suit with open-collar shirt"
         attire_deepwork = "wearing a tailored dark charcoal blazer over crisp white crewneck tee"
         attire_athletic = "wearing a high-performance running singlet and sports smartwatch"
         attire_zen = "wearing a light gray breathable linen collarless shirt"
         photos = []
-    else:
+    elif "profile" in data:
+        # Nested schema (from setup_face_profile.py)
         prof = data["profile"]
         anchor = prof.get("prompt_anchor_snippet", "")
         attires = prof.get("standard_attires", {})
@@ -69,6 +74,15 @@ def main():
         attire_athletic = attires.get("athletic_runner", "wearing athletic runner apparel")
         attire_zen = attires.get("nature_eco_zen", "wearing a light gray linen collarless shirt")
         photos = data.get("dataset_metadata", {}).get("reference_photos", [])
+    else:
+        # Flat schema (from install_from_qr.py)
+        anchor = data.get("prompt_anchor_snippet", "")
+        anchors = data.get("anchors", {})
+        photos = [v for v in anchors.values() if v]
+        attire_formal = "wearing a tailored executive suit with open-collar shirt"
+        attire_deepwork = "wearing a tailored dark charcoal blazer over crisp white crewneck tee"
+        attire_athletic = "wearing a high-performance running singlet and sports smartwatch"
+        attire_zen = "wearing a light gray breathable linen collarless shirt"
 
     print("\n" + "=" * 70)
     print("🎨 BỘ 4 PROMPT TEST THỰC CHIẾN - AI FACE CLONE PRO")

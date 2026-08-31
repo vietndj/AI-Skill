@@ -1,0 +1,13 @@
+{
+  "subject_name": "Việt",
+  "style_profile": "executive",
+  "face_id": "VIETMAC_LOCAL",
+  "created_at": "2026-08-31T14:50:00Z",
+  "is_activated": true,
+  "anchors": {
+    "primary": "/Users/vietmac/.gemini/config/skills/ai-face-clone/assets/anchor_002.jpg",
+    "secondary": "/Users/vietmac/.gemini/config/skills/ai-face-clone/assets/anchor_001.jpg",
+    "lifestyle": "/Users/vietmac/.gemini/config/skills/ai-face-clone/assets/anchor_003.jpg"
+  },
+  "prompt_anchor_snippet": "a handsome 30s Vietnamese man with short textured modern black hair, defined sharp jawline, lean athletic build, expressive dark eyes with deep double eyelids, authentic Asian facial features, wearing tailored executive attire"
+}

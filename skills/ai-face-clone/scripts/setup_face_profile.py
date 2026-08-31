@@ -13,8 +13,12 @@ import shutil
 import argparse
 from pathlib import Path
 
-DEFAULT_PHOTO_DIR = Path.home() / ".gemini" / "avatar_photos"
-DEFAULT_CATALOG_PATH = DEFAULT_PHOTO_DIR / "face_catalog.json"
+SCRIPT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+SKILL_DIR = SCRIPT_DIR.parent
+ASSETS_DIR = SKILL_DIR / "assets"
+
+DEFAULT_PHOTO_DIR = ASSETS_DIR
+DEFAULT_CATALOG_PATH = ASSETS_DIR / "face_catalog.json"
 DEFAULT_RULE_PATH = Path.home() / ".gemini" / "config" / "rules" / "ai_face_clone.md"
 
 VALID_EXTENSIONS = ("*.jpg", "*.jpeg", "*.png", "*.webp", "*.JPG", "*.JPEG", "*.PNG", "*.WEBP")
