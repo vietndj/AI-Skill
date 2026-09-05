@@ -90,14 +90,19 @@ cd "/Users/vietmac/Documents/CODE/[slug]"
 # Link project trước
 npx vercel link --yes --scope viet-s-projects1
 
-# Set đủ 6 biến môi trường cho cả 3 môi trường (production, preview, development)
+# Set đủ các biến môi trường cho cả 3 môi trường (production, preview, development)
 for env in production preview development; do
   echo "[giá số]" | npx vercel env add COURSE_AMOUNT $env --scope viet-s-projects1 --yes 2>/dev/null
+  echo "[TÊN SP]" | npx vercel env add PRODUCT_NAME $env --scope viet-s-projects1 --yes 2>/dev/null
   echo "ZXDNXUIW6N2IQROARNGKEZTI0YFCV2JSBU41RTMEPA1QIMJYKG9PHG35WD5O90QY" | npx vercel env add SEPAY_API_KEY $env --scope viet-s-projects1 --yes 2>/dev/null
-  echo "https://hook.us2.make.com/mdc9dfwges9r1v06momkpboh9auhrtgu" | npx vercel env add MAKE_WEBHOOK_URL $env --scope viet-s-projects1 --yes 2>/dev/null
   echo "https://script.google.com/macros/s/AKfycbz3s4V-cItvUcM3g-oZy0mAWsxGXr9UhLhz_qPgXWZgFNTT9KgKZxu391m-aRv8rz8U/exec" | npx vercel env add GOOGLE_SCRIPT_URL $env --scope viet-s-projects1 --yes 2>/dev/null
+  echo "re_YOUR_RESEND_API_KEY_HERE" | npx vercel env add RESEND_API_KEY $env --scope viet-s-projects1 --yes 2>/dev/null
+  echo "[TÊN SP] · Việt <viet@fedu.vn>" | npx vercel env add RESEND_FROM_EMAIL $env --scope viet-s-projects1 --yes 2>/dev/null
   echo "8964853536:AAHuRNm_hY-YQtveBD1HlmthN4I5xpVzM8U" | npx vercel env add TELEGRAM_BOT_TOKEN $env --scope viet-s-projects1 --yes 2>/dev/null
   echo "2050406425" | npx vercel env add TELEGRAM_CHAT_ID $env --scope viet-s-projects1 --yes 2>/dev/null
+  echo "Nguyễn Đức Việt" | npx vercel env add SELLER_NAME $env --scope viet-s-projects1 --yes 2>/dev/null
+  echo "0934688632" | npx vercel env add SELLER_PHONE $env --scope viet-s-projects1 --yes 2>/dev/null
+  echo "0934688632" | npx vercel env add SELLER_ZALO $env --scope viet-s-projects1 --yes 2>/dev/null
   echo "vietndj@gmail.com" | npx vercel env add SELLER_EMAIL $env --scope viet-s-projects1 --yes 2>/dev/null
 done
 ```
