@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kho Kỹ Năng AI — FEDU Ecosystem</title>
+    <style>
+        :root {
+            --bg-grad-start: #1a1a2e;
+            --bg-grad-end: #16213e;
+            --card-bg: #0f3460;
+            --accent: #e94560;
+            --text-main: #eee;
+            --text-muted: #aaa;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-grad-start), var(--bg-grad-end));
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+        header {
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+        h1 { margin: 0 0 0.5rem 0; font-size: 1.8rem; font-weight: 700; }
+        .hero-desc { color: var(--text-muted); margin-bottom: 1.5rem; }
+        
+        .login-box {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .login-box input {
+            padding: 0.3rem 0.5rem;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #111;
+            color: #fff;
+            width: 80px;
+        }
+        .login-box button {
+            padding: 0.3rem 0.6rem;
+            background: #333;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-box button:hover { background: #444; }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem auto;
+            max-width: 1200px;
+            padding: 0 1rem;
+        }
+        .btn-install-all {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-install-all:hover { background: #d03d55; }
+        
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--card-bg);
+            border-color: var(--accent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto 3rem;
+            padding: 0 1rem;
+        }
+        @media(min-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+        @media(min-width: 900px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+        }
+        .icon { font-size: 2rem; }
+        .card-title { font-size: 1.2rem; font-weight: 600; margin: 0; }
+        .tag {
+            background: rgba(255,255,255,0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+        .private-tag { background: #662222; color: #ffa0a0; }
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            flex-grow: 1;
+            margin-bottom: 1.5rem;
+        }
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            flex: 1;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-install { background: #225588; color: white; }
+        .btn-run { background: var(--accent); color: white; }
+        
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2a2a4a;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .toast.show { opacity: 1; }
+        
+        .section-title {
+            grid-column: 1 / -1;
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 0.5rem;
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚀 Kho Kỹ Năng AI — FEDU Ecosystem</h1>
+        <div class="hero-desc">Cài đặt kỹ năng bằng 1 chạm cho Antigravity AI Agent</div>
+        <div class="login-box">
+            <input type="password" id="admin-pass" placeholder="Password">
+            <button onclick="checkLogin()">Vào</button>
+        </div>
+    </header>
+
+    <div class="controls">
+        <button class="btn-install-all" onclick="copyInstallAll()">Cài tất cả kỹ năng (Public)</button>
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Tất cả</button>
+            <button class="filter-btn" data-filter="video">Video</button>
+            <button class="filter-btn" data-filter="marketing">Marketing</button>
+            <button class="filter-btn" data-filter="developer">Developer</button>
+        </div>
+    </div>
+
+    <div class="grid" id="skills-grid"></div>
+    <div id="toast" class="toast">Đã copy lệnh vào clipboard!</div>
+
+    <script>
+        const publicSkills = [
+            { id: 'analyze-video', name: 'Phân tích video', icon: '🎬', tag: 'video', desc: 'Bóc tách cắt cảnh, trích xuất keyframes video.' },
+            { id: 'phan-tich-podcast-youtube', name: 'Phân tích podcast', icon: '🎙️', tag: 'video', desc: 'Phân tích podcast sâu sắc 8 insights.' },
+            { id: 'tai-nhac', name: 'Tải nhạc', icon: '🎵', tag: 'video', desc: 'Tải âm thanh MP3 từ link MXH.' },
+            { id: 'nen1080', name: 'Nén 1080p', icon: '⚡', tag: 'video', desc: 'Nén video chuẩn Instagram siêu nhẹ.' },
+            { id: 'bang-phan-canh', name: 'Bảng phân cảnh', icon: '🎞️', tag: 'video', desc: 'Tạo storyboard micro-beats.' },
+            { id: '3-tang', name: '3 tầng', icon: '🎯', tag: 'marketing', desc: 'Phân tích kịch bản 3 tầng tâm lý.' },
+            { id: 'loc', name: 'Lọc văn mẫu', icon: '🧹', tag: 'marketing', desc: 'Xóa từ sáo rỗng, viết lại chân thực.' },
+            { id: 'tao-slide-pro', name: 'Tạo slide pro', icon: '🎨', tag: 'marketing', desc: 'Tạo sơ đồ, slide chuẩn Charcoal Slate.' },
+            { id: 'sua-phu-de-capcut', name: 'Sửa phụ đề CapCut', icon: '✂️', tag: 'video', desc: 'Sửa lỗi chính tả trực tiếp trong project CapCut.' },
+            { id: 'nhan-ban-web', name: 'Nhân bản web', icon: '🌐', tag: 'developer', desc: 'Nhân bản cấu trúc HTML web mẫu.' },
+            { id: 'miss-sale-page', name: 'Miss sale page', icon: '🛒', tag: 'marketing', desc: 'Tạo landing page bán hàng.' },
+            { id: 'create-landing-page', name: 'Tạo landing page', icon: '🚀', tag: 'developer', desc: 'Tạo landing page linh hoạt.' },
+            { id: 'toi-uu-prompt', name: 'Tối ưu prompt', icon: '✨', tag: 'developer', desc: 'Cấu trúc lại lệnh rõ ràng.' },
+            { id: 'mo-phong-thuc-chien', name: 'Mô phỏng thực chiến', icon: '🥊', tag: 'marketing', desc: 'Đóng vai tập duyệt thực tế.' },
+            { id: 'vietmac-voice', name: 'VietMac voice', icon: '🗣️', tag: 'marketing', desc: 'Viết nội dung chuẩn văn phong anh Việt.' },
+            { id: 'ugc-auto-edit', name: 'UGC auto edit', icon: '📱', tag: 'video', desc: 'Auto edit video tự quay (UGC).' },
+            { id: 'xem-anh-moi-nhat', name: 'Xem ảnh mới nhất', icon: '🖼️', tag: 'developer', desc: 'Phân tích ảnh vừa chụp xong.' },
+            { id: 'telegram-dispatcher', name: 'Telegram dispatcher', icon: '✈️', tag: 'developer', desc: 'Bắn tin và file qua Telegram.' }
+        ];
+
+        const privateSkills = [
+            { id: 'architect', name: 'Architect', icon: '🏗️', tag: 'developer', desc: 'Kiến trúc sư hệ thống, code chuyên sâu.' },
+            { id: 'team', name: 'Team', icon: '👥', tag: 'developer', desc: 'Biệt đội đa tác nhân.' },
+            { id: 're-nhanh', name: 'Rẽ nhánh', icon: '🌱', tag: 'developer', desc: 'Rẽ nhánh context chat.' },
+            { id: 'nghiem-thu', name: 'Nghiệm thu', icon: '📋', tag: 'developer', desc: 'Kiểm duyệt chéo code.' },
+            { id: 'master-vault', name: 'Master vault', icon: '💾', tag: 'developer', desc: 'Sao lưu hệ thống, database.' },
+            { id: 'agy-cleanup', name: 'AGY cleanup', icon: '🧹', tag: 'developer', desc: 'Dọn dẹp hệ thống.' },
+            { id: 'codegraph', name: 'Codegraph', icon: '🕸️', tag: 'developer', desc: 'Lập bản đồ repo code.' },
+            { id: 'ghi-web', name: 'Ghi web', icon: '📝', tag: 'developer', desc: 'Lưu log web.' },
+            { id: 'html', name: 'HTML Content', icon: '📄', tag: 'developer', desc: 'Tạo layout HTML content adaptive.' },
+            { id: 'nguyen-viet-voice', name: 'Nguyen Viet voice', icon: '🎤', tag: 'marketing', desc: 'Văn phong chuẩn anh Việt v2.' }
+        ];
+
+        let isAdmin = false;
+        let currentFilter = 'all';
+        const grid = document.getElementById('skills-grid');
+
+        function render() {
+            grid.innerHTML = '';
+            
+            const pSkills = publicSkills.filter(s => currentFilter === 'all' || s.tag === currentFilter);
+            if (pSkills.length > 0) {
+                pSkills.forEach(s => grid.appendChild(createCard(s, false)));
+            }
+
+            if (isAdmin) {
+                const prSkills = privateSkills.filter(s => currentFilter === 'all' || s.tag === currentFilter);
+                if (prSkills.length > 0) {
+                    const title = document.createElement('div');
+                    title.className = 'section-title';
+                    title.textContent = '🔒 Kỹ năng Private (Chỉ Admin)';
+                    grid.appendChild(title);
+                    prSkills.forEach(s => grid.appendChild(createCard(s, true)));
+                }
+            }
+        }
+
+        function createCard(skill, isPrivate) {
+            const el = document.createElement('div');
+            el.className = 'card';
+            
+            let btnRunHtml = '';
+            let btnInstallCode = `curl -fsSL https://raw.githubusercontent.com/vietndj/AI-Skill/main/install-${skill.id}.sh | bash`;
+            if (isPrivate) {
+                // Private skill usually installed differently or already exists, 
+                // but let's just make run button run ephemeral script or instruction
+                btnRunHtml = `<button class="btn btn-run" onclick="copyToClipboard('Cài & Chạy skill: ${skill.id}')">Cài & Chạy</button>`;
+            }
+
+            el.innerHTML = `
+                <div class="card-header">
+                    <span class="icon">${skill.icon}</span>
+                    <h3 class="card-title">${skill.name}</h3>
+                </div>
+                <span class="tag ${isPrivate ? 'private-tag' : ''}">${isPrivate ? 'PRIVATE' : skill.tag.toUpperCase()}</span>
+                <div class="card-desc">${skill.desc}</div>
+                <div class="card-actions">
+                    <button class="btn btn-install" onclick="copyToClipboard('${btnInstallCode}')">Copy lệnh cài</button>
+                    ${btnRunHtml}
+                </div>
+            `;
+            return el;
+        }
+
+        function copyInstallAll() {
+            copyToClipboard('curl -fsSL https://raw.githubusercontent.com/vietndj/AI-Skill/main/install.sh | bash');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => showToast());
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function checkLogin() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === '0070') {
+                isAdmin = true;
+                document.querySelector('.login-box').classList.add('hidden');
+                render();
+            } else {
+                alert('Mật khẩu sai!');
+            }
+        }
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                render();
+            });
+        });
+
+        render();
+    </script>
+</body>
+</html>
